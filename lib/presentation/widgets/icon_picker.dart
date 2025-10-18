@@ -21,6 +21,118 @@ class _IconPickerBottomSheetState extends State<IconPickerBottomSheet> {
   String _searchQuery = '';
   String? _selectedIcon;
 
+  // Helper function to convert IconData to string name
+  String _getIconName(IconData icon) {
+    switch (icon) {
+      case Icons.fitness_center:
+        return 'fitness_center';
+      case Icons.water_drop:
+        return 'water_drop';
+      case Icons.book:
+        return 'book';
+      case Icons.self_improvement:
+        return 'self_improvement';
+      case Icons.bedtime:
+        return 'bedtime';
+      case Icons.wb_sunny:
+        return 'wake';
+      case Icons.restaurant:
+        return 'restaurant';
+      case Icons.coffee:
+        return 'coffee';
+      case Icons.work:
+        return 'work';
+      case Icons.school:
+        return 'school';
+      case Icons.home:
+        return 'home';
+      case Icons.directions_walk:
+        return 'directions_walk';
+      case Icons.directions_run:
+        return 'directions_run';
+      case Icons.pool:
+        return 'pool';
+      case Icons.bike_scooter:
+        return 'bike_scooter';
+      case Icons.psychology:
+        return 'psychology';
+      case Icons.volunteer_activism:
+        return 'volunteer_activism';
+      case Icons.music_note:
+        return 'music_note';
+      case Icons.palette:
+        return 'palette';
+      case Icons.camera_alt:
+        return 'camera_alt';
+      case Icons.games:
+        return 'games';
+      case Icons.movie:
+        return 'movie';
+      case Icons.shopping_cart:
+        return 'shopping_cart';
+      case Icons.cleaning_services:
+        return 'cleaning_services';
+      case Icons.pets:
+        return 'pets';
+      case Icons.family_restroom:
+        return 'family_restroom';
+      case Icons.favorite:
+        return 'favorite';
+      case Icons.health_and_safety:
+        return 'health_and_safety';
+      case Icons.eco:
+        return 'eco';
+      case Icons.star:
+        return 'star';
+      case Icons.celebration:
+        return 'celebration';
+      case Icons.travel_explore:
+        return 'travel_explore';
+      case Icons.language:
+        return 'language';
+      case Icons.code:
+        return 'code';
+      case Icons.brush:
+        return 'brush';
+      case Icons.sports_tennis:
+        return 'sports_tennis';
+      case Icons.sports_basketball:
+        return 'sports_basketball';
+      case Icons.sports_soccer:
+        return 'sports_soccer';
+      case Icons.sports_volleyball:
+        return 'sports_volleyball';
+      case Icons.sports_esports:
+        return 'sports_esports';
+      case Icons.sports_golf:
+        return 'sports_golf';
+      case Icons.sports_motorsports:
+        return 'sports_motorsports';
+      case Icons.sports_handball:
+        return 'sports_handball';
+      case Icons.sports_kabaddi:
+        return 'sports_kabaddi';
+      case Icons.sports_mma:
+        return 'sports_mma';
+      case Icons.sports_rugby:
+        return 'sports_rugby';
+      case Icons.sports_cricket:
+        return 'sports_cricket';
+      case Icons.sports_baseball:
+        return 'sports_baseball';
+      case Icons.sports_hockey:
+        return 'sports_hockey';
+      case Icons.sports_football:
+        return 'sports_football';
+      case Icons.sports:
+        return 'sports';
+      case Icons.sports_gymnastics:
+        return 'sports_gymnastics';
+      default:
+        return 'check_circle_outline';
+    }
+  }
+
   // Curated list of icons for habits
   static const List<IconData> _habitIcons = [
     Icons.fitness_center,
@@ -185,12 +297,13 @@ class _IconPickerBottomSheetState extends State<IconPickerBottomSheet> {
               itemCount: _filteredIcons.length,
               itemBuilder: (context, index) {
                 final icon = _filteredIcons[index];
-                final isSelected = _selectedIcon == icon.toString();
+                final iconName = _getIconName(icon);
+                final isSelected = _selectedIcon == iconName;
                 
                 return GestureDetector(
                   onTap: () {
                     setState(() {
-                      _selectedIcon = icon.toString();
+                      _selectedIcon = iconName;
                     });
                   },
                   child: Container(

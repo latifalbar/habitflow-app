@@ -1,25 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../domain/entities/habit.dart';
+import '../providers/habit_completion_provider.dart';
 
-class HabitCard extends StatelessWidget {
+class HabitCard extends ConsumerWidget {
   final Habit habit;
   final VoidCallback? onTap;
   final VoidCallback? onCheck;
-  final bool isCompleted;
 
   const HabitCard({
     super.key,
     required this.habit,
     this.onTap,
     this.onCheck,
-    this.isCompleted = false,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final completionStatus = ref.watch(habitCompletionStatusProvider(habit.id));
+    final completionCount = ref.watch(habitCompletionCountProvider(habit.id));
+    
     return Card(
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: InkWell(
@@ -27,120 +30,283 @@ class HabitCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.md),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Icon
-              Hero(
-                tag: 'habit_icon_${habit.id}',
-                child: Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: habit.color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                  ),
-                  child: Icon(
-                    _getIconData(habit.icon),
-                    color: habit.color,
-                    size: 24,
-                  ),
-                ),
-              ),
-              
-              const SizedBox(width: AppSpacing.md),
-              
-              // Content
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      habit.name,
-                      style: AppTextStyles.bodyLarge.copyWith(
-                        fontWeight: FontWeight.w600,
-                        decoration: isCompleted ? TextDecoration.lineThrough : null,
-                        color: isCompleted ? AppColors.grey500 : AppColors.grey800,
+              // Row 1: Icon + Title + Compact Checkbox
+              Row(
+                children: [
+                  // Icon
+                  Hero(
+                    tag: 'habit_icon_${habit.id}',
+                    child: Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: habit.color.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                      ),
+                      child: Icon(
+                        _getIconData(habit.icon),
+                        color: habit.color,
+                        size: 24,
                       ),
                     ),
-                    if (habit.description.isNotEmpty) ...[
-                      const SizedBox(height: AppSpacing.xs),
-                      Text(
-                        habit.description,
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: AppColors.grey600,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                    const SizedBox(height: AppSpacing.xs),
-                    Row(
+                  ),
+                  
+                  const SizedBox(width: AppSpacing.md),
+                  
+                  // Title and Description
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.sm,
-                            vertical: AppSpacing.xs,
-                          ),
-                          decoration: BoxDecoration(
-                            color: habit.color.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                          ),
-                          child: Text(
-                            habit.frequencyDescription,
-                            style: AppTextStyles.labelSmall.copyWith(
-                              color: habit.color,
-                              fontWeight: FontWeight.w500,
-                            ),
+                        Text(
+                          habit.name,
+                          style: AppTextStyles.bodyLarge.copyWith(
+                            fontWeight: FontWeight.w600,
+                            decoration: completionStatus == HabitCompletionStatus.completed ? TextDecoration.lineThrough : null,
+                            color: completionStatus == HabitCompletionStatus.completed ? AppColors.grey500 : AppColors.grey800,
                           ),
                         ),
-                        const SizedBox(width: AppSpacing.sm),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.sm,
-                            vertical: AppSpacing.xs,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.grey100,
-                            borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                          ),
-                          child: Text(
-                            habit.goalDescription,
-                            style: AppTextStyles.labelSmall.copyWith(
+                        if (habit.description.isNotEmpty) ...[
+                          const SizedBox(height: AppSpacing.xs),
+                          Text(
+                            habit.description,
+                            style: AppTextStyles.bodySmall.copyWith(
                               color: AppColors.grey600,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
+                        ],
                       ],
                     ),
-                  ],
-                ),
+                  ),
+                  
+                  // Compact Check Button
+                  if (onCheck != null)
+                    _buildCompactCheckButton(completionCount),
+                ],
               ),
               
-              // Check button
-              if (onCheck != null)
-                GestureDetector(
-                  onTap: onCheck,
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: isCompleted 
-                          ? AppColors.greenPrimary
-                          : AppColors.grey200,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      isCompleted ? Icons.check : Icons.add,
-                      color: isCompleted ? Colors.white : AppColors.grey600,
-                      size: 20,
+              const SizedBox(height: AppSpacing.md),
+              
+              // Row 2: Badges (flexible width)
+              Row(
+                children: [
+                  Flexible(
+                    fit: FlexFit.loose,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.sm,
+                        vertical: AppSpacing.xs,
+                      ),
+                      decoration: BoxDecoration(
+                        color: habit.color.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                      ),
+                      child: Text(
+                        habit.frequencyDescription,
+                        style: AppTextStyles.labelSmall.copyWith(
+                          color: habit.color,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
                     ),
                   ),
-                ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Flexible(
+                    fit: FlexFit.loose,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.sm,
+                        vertical: AppSpacing.xs,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.grey100,
+                        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                      ),
+                      child: Text(
+                        habit.goalDescription,
+                        style: AppTextStyles.labelSmall.copyWith(
+                          color: AppColors.grey600,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              
+              // Row 3: Progress Indicator (conditional)
+              if (habit.frequency == HabitFrequency.timesPerWeek) ...[
+                const SizedBox(height: AppSpacing.sm),
+                _buildWeeklyProgress(completionCount),
+              ] else if (habit.goalType == HabitGoalType.quantifiable) ...[
+                const SizedBox(height: AppSpacing.sm),
+                _buildQuantifiableProgress(completionCount),
+              ],
             ],
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildCompactCheckButton(int completionCount) {
+    final isCompleted = completionCount > 0;
+    
+    if (habit.frequency == HabitFrequency.daily) {
+      // Daily habit - circular checkbox
+      return GestureDetector(
+        onTap: isCompleted ? null : onCheck,
+        child: Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: isCompleted ? null : Border.all(color: habit.color, width: 2),
+            color: isCompleted ? habit.color : Colors.transparent,
+          ),
+          child: isCompleted 
+            ? Icon(Icons.check, color: Colors.white, size: 20)
+            : null,
+        ),
+      );
+    } else if (habit.frequency == HabitFrequency.timesPerWeek) {
+      // Weekly habit - add button
+      return GestureDetector(
+        onTap: onCheck,
+        child: Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: habit.color,
+          ),
+          child: Icon(Icons.add, color: Colors.white, size: 20),
+        ),
+      );
+    } else if (habit.goalType == HabitGoalType.quantifiable) {
+      // Quantifiable habit - counter buttons
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          GestureDetector(
+            onTap: completionCount > 0 ? () => _decrementValue() : null,
+            child: Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: completionCount > 0 ? habit.color.withOpacity(0.1) : Colors.grey[300],
+              ),
+              child: Icon(
+                Icons.remove,
+                color: completionCount > 0 ? habit.color : Colors.grey[500],
+                size: 16,
+              ),
+            ),
+          ),
+          const SizedBox(width: 4),
+          GestureDetector(
+            onTap: onCheck,
+            child: Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: habit.color,
+              ),
+              child: Icon(Icons.add, color: Colors.white, size: 16),
+            ),
+          ),
+        ],
+      );
+    }
+    
+    // Default - simple check button
+    return GestureDetector(
+      onTap: isCompleted ? null : onCheck,
+      child: Container(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: isCompleted ? null : Border.all(color: habit.color, width: 2),
+          color: isCompleted ? habit.color : Colors.transparent,
+        ),
+        child: isCompleted 
+          ? Icon(Icons.check, color: Colors.white, size: 20)
+          : null,
+      ),
+    );
+  }
+
+  Widget _buildWeeklyProgress(int completionCount) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Progress dots
+        Row(
+          children: List.generate(habit.timesPerWeek, (index) {
+            return Padding(
+              padding: EdgeInsets.only(right: 4),
+              child: Icon(
+                index < completionCount ? Icons.circle : Icons.circle_outlined,
+                size: 12,
+                color: index < completionCount ? habit.color : Colors.grey[400],
+              ),
+            );
+          }),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        // Progress text
+        Text(
+          '$completionCount/${habit.timesPerWeek} ${habit.periodName}',
+          style: AppTextStyles.labelSmall.copyWith(
+            color: habit.color,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQuantifiableProgress(int completionCount) {
+    final goalValue = habit.goalValue?.toInt() ?? 1;
+    final progress = (completionCount / goalValue).clamp(0.0, 1.0);
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Progress bar
+        LinearProgressIndicator(
+          value: progress,
+          backgroundColor: Colors.grey[300],
+          valueColor: AlwaysStoppedAnimation<Color>(habit.color),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        // Progress text
+        Text(
+          '$completionCount/$goalValue ${habit.goalUnit ?? 'units'}',
+          style: AppTextStyles.labelSmall.copyWith(
+            color: habit.color,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _decrementValue() {
+    // TODO: Implement decrement logic
+    // This would require a separate method to remove a completion
+    // For now, we'll just show a placeholder
   }
 
   IconData _getIconData(String iconString) {

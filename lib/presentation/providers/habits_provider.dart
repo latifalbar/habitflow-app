@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/repositories/habit_repository.dart';
 import '../../domain/entities/habit.dart';
+import 'habit_sort_provider.dart';
+import 'habit_completion_provider.dart';
 
 // Repository provider
 final habitRepositoryProvider = Provider<HabitRepository>((ref) {
@@ -16,8 +18,43 @@ final habitsProvider = StateNotifierProvider<HabitsNotifier, AsyncValue<List<Hab
 // Active habits provider
 final activeHabitsProvider = Provider<AsyncValue<List<Habit>>>((ref) {
   final habitsAsync = ref.watch(habitsProvider);
+  final sortOption = ref.watch(habitSortOptionProvider);
+  
   return habitsAsync.when(
-    data: (habits) => AsyncValue.data(habits.where((habit) => !habit.isArchived).toList()),
+    data: (habits) {
+      final activeHabits = habits
+          .where((habit) => !habit.isArchived)
+          .toList();
+      
+      // Sort based on user selection
+      switch (sortOption) {
+        case HabitSortOption.newestFirst:
+          activeHabits.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          break;
+        case HabitSortOption.oldestFirst:
+          activeHabits.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+          break;
+        case HabitSortOption.nameAsc:
+          activeHabits.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+          break;
+        case HabitSortOption.nameDesc:
+          activeHabits.sort((a, b) => b.name.toLowerCase().compareTo(a.name.toLowerCase()));
+          break;
+        case HabitSortOption.uncompletedFirst:
+          // Sort by completion status, then by createdAt
+          activeHabits.sort((a, b) {
+            final aCompleted = ref.read(habitCompletionCountProvider(a.id)) > 0;
+            final bCompleted = ref.read(habitCompletionCountProvider(b.id)) > 0;
+            if (aCompleted == bCompleted) {
+              return b.createdAt.compareTo(a.createdAt);
+            }
+            return aCompleted ? 1 : -1; // uncompleted first
+          });
+          break;
+      }
+      
+      return AsyncValue.data(activeHabits);
+    },
     loading: () => const AsyncValue.loading(),
     error: (error, stack) => AsyncValue.error(error, stack),
   );

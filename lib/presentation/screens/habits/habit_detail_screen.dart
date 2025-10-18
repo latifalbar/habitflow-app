@@ -7,8 +7,11 @@ import '../../../domain/entities/habit.dart';
 import '../../../domain/entities/habit_log.dart';
 import '../../widgets/progress_card.dart';
 import '../../widgets/calendar_heatmap.dart';
-import '../../providers/habits_provider.dart';
-import '../../providers/habit_logs_provider.dart';
+import '../../providers/habits_provider.dart' as habits;
+import '../../providers/habit_logs_provider.dart' as logs;
+import '../../providers/progress_provider.dart';
+import '../../providers/habit_completion_provider.dart';
+import '../../widgets/habit_check_in_button.dart';
 import 'add_habit_screen.dart';
 
 class HabitDetailScreen extends ConsumerStatefulWidget {
@@ -149,6 +152,10 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
                     const SizedBox(height: AppSpacing.lg),
                   ],
 
+                  // Quick Stats Row
+                  _buildQuickStats(),
+                  const SizedBox(height: AppSpacing.lg),
+
                   // Today's Action
                   _buildTodayAction(),
                   const SizedBox(height: AppSpacing.lg),
@@ -173,68 +180,47 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
     );
   }
 
-  Widget _buildTodayAction() {
-    final completionStatus = ref.watch(habitCompletionStatusProvider(widget.habit.id));
+  Widget _buildQuickStats() {
+    final stats = ref.watch(logs.habitStatsProvider(widget.habit.id));
     
-    return completionStatus.when(
-      data: (isCompletedToday) => Card(
+    return stats.when(
+      data: (habitStats) => Card(
         child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          child: Column(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Row(
             children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.today,
-                    color: widget.habit.color,
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Text(
-                    'Today',
-                    style: AppTextStyles.h6.copyWith(
-                      color: widget.habit.color,
-                    ),
-                  ),
-                  const Spacer(),
-                  Text(
-                    isCompletedToday ? 'Completed!' : 'Not completed',
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: isCompletedToday 
-                          ? AppColors.greenPrimary 
-                          : AppColors.grey500,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
+              Expanded(
+                child: _buildQuickStatItem(
+                  icon: Icons.local_fire_department,
+                  value: '${habitStats.currentStreak}',
+                  label: 'Current Streak',
+                  color: AppColors.orangePrimary,
+                ),
               ),
-              const SizedBox(height: AppSpacing.md),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: isCompletedToday ? null : _markAsCompleted,
-                  icon: Icon(
-                    isCompletedToday ? Icons.check_circle : Icons.add_circle,
-                    color: isCompletedToday ? Colors.white : widget.habit.color,
-                  ),
-                  label: Text(
-                    isCompletedToday ? 'Completed' : 'Mark as Completed',
-                    style: AppTextStyles.bodyLarge.copyWith(
-                      color: isCompletedToday ? Colors.white : widget.habit.color,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isCompletedToday 
-                        ? AppColors.greenPrimary 
-                        : widget.habit.color.withOpacity(0.1),
-                    foregroundColor: isCompletedToday 
-                        ? Colors.white 
-                        : widget.habit.color,
-                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                    ),
-                  ),
+              Container(
+                width: 1,
+                height: 40,
+                color: AppColors.grey200,
+              ),
+              Expanded(
+                child: _buildQuickStatItem(
+                  icon: Icons.check_circle,
+                  value: '${habitStats.completionCount}',
+                  label: 'Total',
+                  color: AppColors.greenPrimary,
+                ),
+              ),
+              Container(
+                width: 1,
+                height: 40,
+                color: AppColors.grey200,
+              ),
+              Expanded(
+                child: _buildQuickStatItem(
+                  icon: Icons.trending_up,
+                  value: '${(habitStats.completionRate * 100).toInt()}%',
+                  label: 'Success Rate',
+                  color: AppColors.bluePrimary,
                 ),
               ),
             ],
@@ -243,21 +229,196 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
       ),
       loading: () => Card(
         child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          child: const Center(child: CircularProgressIndicator()),
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                'Loading stats...',
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.grey600,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
       error: (error, stack) => Card(
         child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          child: Text('Error loading completion status: $error'),
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Text(
+            'Error loading stats',
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: Colors.red,
+            ),
+          ),
         ),
       ),
     );
   }
 
+  Widget _buildQuickStatItem({
+    required IconData icon,
+    required String value,
+    required String label,
+    required Color color,
+  }) {
+    return Column(
+      children: [
+        Icon(
+          icon,
+          color: color,
+          size: 24,
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          value,
+          style: AppTextStyles.h6.copyWith(
+            color: color,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(
+          label,
+          style: AppTextStyles.labelSmall.copyWith(
+            color: AppColors.grey600,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTodayAction() {
+    final completionCount = ref.watch(habitCompletionCountProvider(widget.habit.id));
+    final progressText = ref.watch(habitProgressTextProvider(widget.habit.id));
+    
+    return Card(
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          children: [
+            // Header with period info
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.sm),
+                  decoration: BoxDecoration(
+                    color: widget.habit.color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                  ),
+                  child: Icon(
+                    Icons.today,
+                    color: widget.habit.color,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Text(
+                  'Today\'s Action',
+                  style: AppTextStyles.h6.copyWith(
+                    color: widget.habit.color,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const Spacer(),
+                _buildPeriodProgress(completionCount, progressText),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            
+            // Adaptive check-in button
+            HabitCheckInButton(
+              habit: widget.habit,
+              onCheckIn: _markAsCompleted,
+              isDetailScreen: true,
+            ),
+            
+            // Show today's completions list if multiple
+            if (completionCount > 1) ...[
+              const SizedBox(height: AppSpacing.md),
+              _buildTodaysCompletionsList(),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPeriodProgress(int count, String progressText) {
+    if (widget.habit.frequency == HabitFrequency.timesPerWeek) {
+      return Row(
+        children: [
+          Text(
+            progressText,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: widget.habit.color,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          // Progress dots
+          ...List.generate(widget.habit.timesPerWeek, (index) {
+            return Padding(
+              padding: const EdgeInsets.only(left: 2),
+              child: Icon(
+                index < count ? Icons.circle : Icons.circle_outlined,
+                size: 8,
+                color: index < count ? widget.habit.color : Colors.grey[400],
+              ),
+            );
+          }),
+        ],
+      );
+    }
+    return Text(
+      count > 0 ? 'Completed!' : 'Not completed',
+      style: AppTextStyles.bodyMedium.copyWith(
+        color: count > 0 ? AppColors.greenPrimary : AppColors.grey500,
+        fontWeight: FontWeight.w500,
+      ),
+    );
+  }
+
+  Widget _buildTodaysCompletionsList() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: AppSpacing.md),
+        Text(
+          'Today\'s Completions:',
+          style: AppTextStyles.bodySmall.copyWith(
+            color: AppColors.grey600,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        // TODO: Implement list of today's completions
+        Container(
+          padding: const EdgeInsets.all(AppSpacing.sm),
+          decoration: BoxDecoration(
+            color: widget.habit.color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+          ),
+          child: Text(
+            'Multiple completions today',
+            style: AppTextStyles.bodySmall.copyWith(
+              color: widget.habit.color,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildProgressSection() {
-    final stats = ref.watch(habitStatsProvider(widget.habit.id));
+    final stats = ref.watch(logs.habitStatsProvider(widget.habit.id));
     
     return stats.when(
       data: (habitStats) => Column(
@@ -524,7 +685,7 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
 
   void _markAsCompleted() async {
     try {
-      final repository = ref.read(habitLogRepositoryProvider);
+      final repository = ref.read(logs.habitLogRepositoryProvider);
       final log = HabitLog(
         id: repository.generateId(),
         habitId: widget.habit.id,
@@ -536,7 +697,10 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
         metadata: {},
       );
       
-      await ref.read(habitLogsProvider.notifier).addLog(log);
+      await ref.read(logs.habitLogsProvider.notifier).addLog(log);
+      
+      // Refresh progress to update home screen
+      await ref.read(progressProvider.notifier).refresh();
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -573,14 +737,14 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
 
   void _duplicateHabit() async {
     try {
-      final repository = ref.read(habitRepositoryProvider);
+      final repository = ref.read(habits.habitRepositoryProvider);
       final duplicated = widget.habit.copyWith(
         id: repository.generateId(),
         name: '${widget.habit.name} (Copy)',
         createdAt: DateTime.now(),
       );
       
-      await ref.read(habitsProvider.notifier).addHabit(duplicated);
+      await ref.read(habits.habitsProvider.notifier).addHabit(duplicated);
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -623,7 +787,7 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
 
     if (confirm == true && mounted) {
       try {
-        await ref.read(habitsProvider.notifier).archiveHabit(widget.habit.id);
+        await ref.read(habits.habitsProvider.notifier).archiveHabit(widget.habit.id);
         if (mounted) {
           Navigator.of(context).pop(true); // Return to list
           ScaffoldMessenger.of(context).showSnackBar(
@@ -671,7 +835,7 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
 
     if (confirm == true && mounted) {
       try {
-        await ref.read(habitsProvider.notifier).deleteHabit(widget.habit.id);
+        await ref.read(habits.habitsProvider.notifier).deleteHabit(widget.habit.id);
         if (mounted) {
           Navigator.of(context).pop(true); // Return to list
           ScaffoldMessenger.of(context).showSnackBar(

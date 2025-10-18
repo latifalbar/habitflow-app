@@ -7,7 +7,10 @@ import '../../../core/constants/app_constants.dart';
 import '../../../domain/entities/habit_log.dart';
 import '../../../domain/entities/habit.dart';
 import '../../providers/habits_provider.dart';
-import '../../providers/habit_logs_provider.dart';
+import '../../providers/habit_logs_provider.dart' as logs;
+import '../../providers/progress_provider.dart';
+import '../../providers/habit_completion_provider.dart';
+import '../../providers/habit_sort_provider.dart';
 import '../../widgets/habit_card.dart';
 import '../habits/add_habit_screen.dart';
 import '../habits/habit_detail_screen.dart';
@@ -92,6 +95,15 @@ class HabitsTab extends ConsumerStatefulWidget {
 
 class _HabitsTabState extends ConsumerState<HabitsTab> {
   @override
+  void initState() {
+    super.initState();
+    // Refresh progress when tab is first loaded
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(progressProvider.notifier).refresh();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final habitsAsync = ref.watch(activeHabitsProvider);
 
@@ -143,16 +155,83 @@ class _HabitsTabState extends ConsumerState<HabitsTab> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text('Your Habits', style: AppTextStyles.h5),
-                    TextButton(
-                      onPressed: () {
-                        ref.read(habitsProvider.notifier).refresh();
-                      },
-                      child: Text(
-                        'Refresh',
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: AppColors.oceanPrimary,
+                    Row(
+                      children: [
+                        // Sort Menu - ICON ONLY
+                        PopupMenuButton<HabitSortOption>(
+                          icon: Icon(Icons.sort, size: 20, color: AppColors.grey600),
+                          tooltip: 'Sort habits',
+                          offset: Offset(0, 40),
+                          onSelected: (option) {
+                            ref.read(habitSortOptionProvider.notifier).state = option;
+                          },
+                          itemBuilder: (context) => [
+                            PopupMenuItem(
+                              value: HabitSortOption.newestFirst,
+                              child: Row(
+                                children: [
+                                  Icon(Icons.arrow_downward, size: 18),
+                                  SizedBox(width: 12),
+                                  Text('Newest First'),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem(
+                              value: HabitSortOption.oldestFirst,
+                              child: Row(
+                                children: [
+                                  Icon(Icons.arrow_upward, size: 18),
+                                  SizedBox(width: 12),
+                                  Text('Oldest First'),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem(
+                              value: HabitSortOption.nameAsc,
+                              child: Row(
+                                children: [
+                                  Icon(Icons.sort_by_alpha, size: 18),
+                                  SizedBox(width: 12),
+                                  Text('Name (A-Z)'),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem(
+                              value: HabitSortOption.nameDesc,
+                              child: Row(
+                                children: [
+                                  Icon(Icons.sort_by_alpha, size: 18),
+                                  SizedBox(width: 12),
+                                  Text('Name (Z-A)'),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem(
+                              value: HabitSortOption.uncompletedFirst,
+                              child: Row(
+                                children: [
+                                  Icon(Icons.radio_button_unchecked, size: 18),
+                                  SizedBox(width: 12),
+                                  Text('Uncompleted First'),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
+                        const SizedBox(width: 8),
+                        // Refresh Button
+                        TextButton(
+                          onPressed: () {
+                            ref.read(habitsProvider.notifier).refresh();
+                          },
+                          child: Text(
+                            'Refresh',
+                            style: AppTextStyles.bodySmall.copyWith(
+                              color: AppColors.oceanPrimary,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -215,10 +294,13 @@ class _HabitsTabState extends ConsumerState<HabitsTab> {
                         if (result == true) {
                           ref.read(habitsProvider.notifier).refresh();
                         }
+                        
+                        // Always refresh progress when returning from detail screen
+                        ref.read(progressProvider.notifier).refresh();
                       },
                       onCheck: () async {
                         try {
-                          final repository = ref.read(habitLogRepositoryProvider);
+                          final repository = ref.read(logs.habitLogRepositoryProvider);
                           final log = HabitLog(
                             id: repository.generateId(),
                             habitId: habit.id,
@@ -230,13 +312,24 @@ class _HabitsTabState extends ConsumerState<HabitsTab> {
                             metadata: {},
                           );
                           
-                          await ref.read(habitLogsProvider.notifier).addLog(log);
+                          await ref.read(logs.habitLogsProvider.notifier).addLog(log);
+                          
+                          // Refresh progress to get updated stats
+                          await ref.read(progressProvider.notifier).refresh();
+                          
+                          // Invalidate completion count to trigger checkbox rebuild
+                          ref.invalidate(habitCompletionCountProvider(habit.id));
                           
                           if (mounted) {
+                            // Get updated progress to show XP earned
+                            final updatedProgress = ref.read(progressProvider);
+                            final xpEarned = _calculateXPForCompletion(habit, updatedProgress);
+                            
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Marked "${habit.name}" as completed!'),
+                                content: Text('Marked "${habit.name}" as completed! +$xpEarned XP'),
                                 backgroundColor: AppColors.greenPrimary,
+                                duration: const Duration(seconds: 2),
                               ),
                             );
                           }
@@ -342,15 +435,61 @@ class _HabitsTabState extends ConsumerState<HabitsTab> {
   }
 
   Widget _buildProgressCard(BuildContext context) {
+    final progress = ref.watch(progressProvider);
+    
+    if (progress.isLoading) {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildStatItem('...', '...', 'Completed'),
+              _buildStatItem('...', 'Days', 'Streak'),
+              _buildStatItem('...', 'Level', 'Your Level'),
+            ],
+          ),
+        ),
+      );
+    }
+    
+    if (progress.error != null) {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Center(
+            child: Text(
+              'Error loading progress: ${progress.error}',
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.redPrimary,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+    
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildStatItem('0', '7', 'Completed'),
-            _buildStatItem('0', 'Days', 'Streak'),
-            _buildStatItem('1', 'Level', 'Your Level'),
+            _buildStatItem(
+              '${progress.completedToday}', 
+              '${progress.totalHabitsToday}', 
+              'Completed'
+            ),
+            _buildStatItem(
+              '${progress.currentStreak}', 
+              'Days', 
+              progress.currentStreak > 0 ? 'Streak 🔥' : 'Streak'
+            ),
+            _buildStatItem(
+              '${progress.currentLevel}', 
+              'Level', 
+              'Your Level'
+            ),
           ],
         ),
       ),
@@ -381,6 +520,24 @@ class _HabitsTabState extends ConsumerState<HabitsTab> {
         ),
       ],
     );
+  }
+
+  int _calculateXPForCompletion(Habit habit, DailyProgress progress) {
+    // Simple XP calculation for display
+    // Base XP + streak bonus + perfect day bonus
+    int xp = 10; // Base XP
+    
+    // Add streak bonus (simplified)
+    if (progress.currentStreak > 0) {
+      xp += (progress.currentStreak * 5).clamp(0, 50);
+    }
+    
+    // Add perfect day bonus
+    if (progress.isPerfectDay) {
+      xp += 100;
+    }
+    
+    return xp;
   }
 }
 

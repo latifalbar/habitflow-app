@@ -1,40 +1,43 @@
 import 'package:uuid/uuid.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import '../../domain/entities/habit_log.dart';
+import '../models/habit_log_model.dart';
+import '../../core/constants/storage_keys.dart';
 
 class HabitLogRepository {
   final _uuid = const Uuid();
-  final List<HabitLog> _logs = [];
+  late final Box<HabitLogModel> _logBox;
+  
+  HabitLogRepository() {
+    _logBox = Hive.box<HabitLogModel>(StorageKeys.habitLogsBox);
+  }
   
   // Get all logs
   List<HabitLog> getAllLogs() {
-    return List.from(_logs);
+    return _logBox.values.map((model) => model.toEntity()).toList();
   }
   
   // Get log by ID
   HabitLog? getLogById(String id) {
-    try {
-      return _logs.firstWhere((log) => log.id == id);
-    } catch (e) {
-      return null;
-    }
+    final model = _logBox.get(id);
+    return model?.toEntity();
   }
   
   // Add new log
   Future<void> addLog(HabitLog log) async {
-    _logs.add(log);
+    final model = HabitLogModel.fromEntity(log);
+    await _logBox.put(log.id, model);
   }
   
   // Update existing log
   Future<void> updateLog(HabitLog log) async {
-    final index = _logs.indexWhere((l) => l.id == log.id);
-    if (index != -1) {
-      _logs[index] = log;
-    }
+    final model = HabitLogModel.fromEntity(log);
+    await _logBox.put(log.id, model);
   }
   
   // Delete log
   Future<void> deleteLog(String id) async {
-    _logs.removeWhere((log) => log.id == id);
+    await _logBox.delete(id);
   }
   
   // Get logs by habit ID
@@ -203,12 +206,19 @@ class HabitLogRepository {
   
   // Get logs count
   int getLogsCount() {
-    return _logs.length;
+    return _logBox.length;
   }
   
   // Delete all logs for a habit (when habit is deleted)
   Future<void> deleteLogsForHabit(String habitId) async {
-    _logs.removeWhere((log) => log.habitId == habitId);
+    final logsToDelete = _logBox.values
+        .where((model) => model.habitId == habitId)
+        .map((model) => model.id)
+        .toList();
+    
+    for (final id in logsToDelete) {
+      await _logBox.delete(id);
+    }
   }
   
   // Get recent logs (last N days)
@@ -216,6 +226,62 @@ class HabitLogRepository {
     final endDate = DateTime.now();
     final startDate = endDate.subtract(Duration(days: days));
     return getLogsByDateRange(startDate, endDate);
+  }
+
+  // Get completion count for a specific period
+  int getCompletionCountForPeriod(String habitId, DateTime start, DateTime end) {
+    final logs = getLogsByHabitId(habitId);
+    return logs.where((log) {
+      final logDate = DateTime(log.completedAt.year, log.completedAt.month, log.completedAt.day);
+      final startDate = DateTime(start.year, start.month, start.day);
+      final endDate = DateTime(end.year, end.month, end.day);
+      return logDate.isAtSameMomentAs(startDate) || 
+             logDate.isAtSameMomentAs(endDate) ||
+             (logDate.isAfter(startDate) && logDate.isBefore(endDate));
+    }).length;
+  }
+
+  // Get today's completion count for a habit
+  int getTodaysCompletionCount(String habitId) {
+    final today = DateTime.now();
+    final todayStart = DateTime(today.year, today.month, today.day);
+    final todayEnd = todayStart.add(Duration(days: 1));
+    
+    return _logBox.values
+        .where((log) => 
+            log.habitId == habitId &&
+            log.completedAt.isAfter(todayStart) &&
+            log.completedAt.isBefore(todayEnd))
+        .length;
+  }
+
+  // Get this week's completion count
+  int getWeekCompletionCount(String habitId) {
+    final now = DateTime.now();
+    final weekStart = now.subtract(Duration(days: now.weekday % 7));
+    final weekStartMidnight = DateTime(weekStart.year, weekStart.month, weekStart.day);
+    
+    return _logBox.values
+        .where((log) => 
+            log.habitId == habitId &&
+            log.completedAt.isAfter(weekStartMidnight))
+        .length;
+  }
+
+  // Check if can add more completions
+  bool canAddMoreCompletions(String habitId, {required String frequency, int? timesPerWeek}) {
+    switch (frequency) {
+      case 'daily':
+        return getTodaysCompletionCount(habitId) == 0;
+      case 'timesPerWeek':
+        return getWeekCompletionCount(habitId) < (timesPerWeek ?? 1);
+      case 'customDays':
+        return getTodaysCompletionCount(habitId) == 0;
+      case 'everyXDays':
+        return getTodaysCompletionCount(habitId) == 0;
+      default:
+        return getTodaysCompletionCount(habitId) == 0;
+    }
   }
 }
 

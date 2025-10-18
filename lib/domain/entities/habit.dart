@@ -157,4 +157,51 @@ class Habit {
         return '${minutes}m';
     }
   }
+
+  // Check if allows multiple completions per day
+  bool get allowsMultipleCompletions {
+    return frequency == HabitFrequency.timesPerWeek;
+  }
+
+  // Get target for current period
+  int get targetCompletions {
+    switch (frequency) {
+      case HabitFrequency.daily:
+        return 1;
+      case HabitFrequency.timesPerWeek:
+        return timesPerWeek;
+      case HabitFrequency.customDays:
+        return 1;
+      case HabitFrequency.everyXDays:
+        return 1;
+    }
+  }
+
+  // Get period name
+  String get periodName {
+    switch (frequency) {
+      case HabitFrequency.daily:
+        return 'today';
+      case HabitFrequency.timesPerWeek:
+        return 'this week';
+      case HabitFrequency.customDays:
+        return 'today';
+      case HabitFrequency.everyXDays:
+        return 'this period';
+    }
+  }
+
+  // Get frequency string for repository methods
+  String get frequencyString {
+    switch (frequency) {
+      case HabitFrequency.daily:
+        return 'daily';
+      case HabitFrequency.timesPerWeek:
+        return 'timesPerWeek';
+      case HabitFrequency.customDays:
+        return 'customDays';
+      case HabitFrequency.everyXDays:
+        return 'everyXDays';
+    }
+  }
 }

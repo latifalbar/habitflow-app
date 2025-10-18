@@ -1,40 +1,43 @@
 import 'package:uuid/uuid.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import '../../domain/entities/habit.dart';
+import '../models/habit_model.dart';
+import '../../core/constants/storage_keys.dart';
 
 class HabitRepository {
   final _uuid = const Uuid();
-  final List<Habit> _habits = [];
+  late final Box<HabitModel> _habitBox;
+  
+  HabitRepository() {
+    _habitBox = Hive.box<HabitModel>(StorageKeys.habitsBox);
+  }
   
   // Get all habits
   List<Habit> getAllHabits() {
-    return List.from(_habits);
+    return _habitBox.values.map((model) => model.toEntity()).toList();
   }
   
   // Get habit by ID
   Habit? getHabitById(String id) {
-    try {
-      return _habits.firstWhere((habit) => habit.id == id);
-    } catch (e) {
-      return null;
-    }
+    final model = _habitBox.get(id);
+    return model?.toEntity();
   }
   
   // Add new habit
   Future<void> addHabit(Habit habit) async {
-    _habits.add(habit);
+    final model = HabitModel.fromEntity(habit);
+    await _habitBox.put(habit.id, model);
   }
   
   // Update existing habit
   Future<void> updateHabit(Habit habit) async {
-    final index = _habits.indexWhere((h) => h.id == habit.id);
-    if (index != -1) {
-      _habits[index] = habit;
-    }
+    final model = HabitModel.fromEntity(habit);
+    await _habitBox.put(habit.id, model);
   }
   
   // Delete habit
   Future<void> deleteHabit(String id) async {
-    _habits.removeWhere((habit) => habit.id == id);
+    await _habitBox.delete(id);
   }
   
   // Get habits by category
@@ -62,7 +65,7 @@ class HabitRepository {
   
   // Get habits count
   int getHabitsCount() {
-    return _habits.length;
+    return _habitBox.length;
   }
   
   // Search habits by name
@@ -73,5 +76,23 @@ class HabitRepository {
       habit.name.toLowerCase().contains(lowercaseQuery) ||
       habit.description.toLowerCase().contains(lowercaseQuery)
     ).toList();
+  }
+  
+  // Get habits scheduled for today
+  List<Habit> getHabitsForToday() {
+    final today = DateTime.now();
+    final activeHabits = getActiveHabits();
+    
+    return activeHabits.where((habit) {
+      return habit.shouldTrackOnDay(today);
+    }).toList();
+  }
+  
+  // Get habits by date range
+  List<Habit> getHabitsByDateRange(DateTime start, DateTime end) {
+    final allHabits = getAllHabits();
+    return allHabits.where((habit) {
+      return habit.createdAt.isAfter(start) && habit.createdAt.isBefore(end);
+    }).toList();
   }
 }
