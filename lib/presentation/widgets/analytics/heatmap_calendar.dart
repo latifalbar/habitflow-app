@@ -15,14 +15,14 @@ class HeatmapCalendar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final analytics = ref.watch(analyticsProvider);
     
-    if (analytics.isLoading) {
-      return _buildLoadingCalendar();
-    }
-    
-    if (analytics.error != null) {
-      return _buildErrorCalendar(analytics.error!);
-    }
-    
+    return analytics.when(
+      data: (data) => _buildHeatmapCalendar(context, data),
+      loading: () => _buildLoadingCalendar(),
+      error: (error, stack) => _buildErrorCalendar(error.toString()),
+    );
+  }
+
+  Widget _buildHeatmapCalendar(BuildContext context, analytics) {
     final heatmapData = analytics.chartData.heatmapData;
     
     if (heatmapData.isEmpty) {

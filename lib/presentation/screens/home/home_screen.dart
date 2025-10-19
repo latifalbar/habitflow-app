@@ -24,6 +24,7 @@ import '../habits/habit_detail_screen.dart';
 import '../habits/habits_search_screen.dart';
 import '../garden/garden_screen.dart';
 import '../analytics/analytics_screen.dart';
+import '../profile/profile_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -39,7 +40,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     const HabitsTab(),
     const AnalyticsTab(),
     const GardenTab(),
-    const ProfileTab(),
+    const ProfileScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -150,7 +151,19 @@ class _HabitsTabState extends ConsumerState<HabitsTab> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // XP Progress Bar
-                const XPProgressBar(),
+                Consumer(
+                  builder: (context, ref, child) {
+                    final userProgressAsync = ref.watch(userProgressProvider);
+                    return userProgressAsync.when(
+                      data: (progress) => XPProgressBar(
+                        currentXP: progress.currentXP,
+                        currentLevel: progress.currentLevel,
+                      ),
+                      loading: () => const LinearProgressIndicator(),
+                      error: (_, __) => const SizedBox.shrink(),
+                    );
+                  },
+                ),
                 const SizedBox(height: AppSpacing.md),
                 
                 // Greeting Card
@@ -598,105 +611,3 @@ class GardenTab extends ConsumerWidget {
   }
 }
 
-// Profile Tab
-class ProfileTab extends ConsumerWidget {
-  const ProfileTab({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return CustomScrollView(
-      slivers: [
-        SliverAppBar(
-          floating: true,
-          title: Text('Profile', style: AppTextStyles.h4),
-        ),
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Column(
-              children: [
-                const SizedBox(height: AppSpacing.lg),
-                // Profile Avatar
-                CircleAvatar(
-                  radius: AppSpacing.avatarLg / 2,
-                  backgroundColor: AppColors.oceanPrimary.withOpacity(0.1),
-                  child: Icon(
-                    Icons.person,
-                    size: AppSpacing.iconXl,
-                    color: AppColors.oceanPrimary,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                Text('Guest User', style: AppTextStyles.h5),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  'Level 1 • 0 XP',
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.grey600,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xl),
-
-                // Profile Options
-                _buildProfileOption(
-                  context,
-                  Icons.workspace_premium,
-                  'Upgrade to Premium',
-                  'Unlock all features',
-                  () {},
-                ),
-                _buildProfileOption(
-                  context,
-                  Icons.emoji_events,
-                  'Achievements',
-                  'View your achievements',
-                  () {},
-                ),
-                _buildProfileOption(
-                  context,
-                  Icons.settings,
-                  'Settings',
-                  'App preferences',
-                  () {},
-                ),
-                _buildProfileOption(
-                  context,
-                  Icons.help_outline,
-                  'Help & Support',
-                  'Get help',
-                  () {},
-                ),
-                _buildProfileOption(
-                  context,
-                  Icons.info_outline,
-                  'About',
-                  'Version ${AppConstants.appVersion}',
-                  () {},
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildProfileOption(
-    BuildContext context,
-    IconData icon,
-    String title,
-    String subtitle,
-    VoidCallback onTap,
-  ) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: ListTile(
-        leading: Icon(icon, color: AppColors.oceanPrimary),
-        title: Text(title, style: AppTextStyles.bodyLarge),
-        subtitle: Text(subtitle, style: AppTextStyles.bodySmall),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: onTap,
-      ),
-    );
-  }
-}

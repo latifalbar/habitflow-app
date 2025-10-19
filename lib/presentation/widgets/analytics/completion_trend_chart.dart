@@ -14,14 +14,14 @@ class CompletionTrendChart extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final analytics = ref.watch(analyticsProvider);
     
-    if (analytics.isLoading) {
-      return _buildLoadingChart();
-    }
-    
-    if (analytics.error != null) {
-      return _buildErrorChart(analytics.error!);
-    }
-    
+    return analytics.when(
+      data: (data) => _buildTrendChart(context, data),
+      loading: () => _buildLoadingChart(),
+      error: (error, stack) => _buildErrorChart(error.toString()),
+    );
+  }
+
+  Widget _buildTrendChart(BuildContext context, analytics) {
     final lineData = analytics.chartData.lineData;
     
     if (lineData.isEmpty) {

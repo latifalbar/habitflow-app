@@ -14,6 +14,21 @@ class TimeRangeSelector extends ConsumerWidget {
     final analytics = ref.watch(analyticsProvider);
     final analyticsNotifier = ref.watch(analyticsProvider.notifier);
 
+    return analytics.when(
+      data: (data) => _buildTimeRangeSelector(context, analyticsNotifier, data, ref),
+      loading: () => _buildLoadingSelector(),
+      error: (error, stack) => _buildErrorSelector(),
+    );
+  }
+
+  Widget _buildTimeRangeSelector(
+    BuildContext context,
+    AnalyticsNotifier analyticsNotifier,
+    AnalyticsData data,
+    WidgetRef ref,
+  ) {
+    final currentTimeRange = data.timeRange;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
       child: Column(
@@ -38,42 +53,42 @@ class TimeRangeSelector extends ConsumerWidget {
                   context,
                   '7D',
                   AnalyticsTimeRange.last7Days,
-                  analytics.timeRange,
+                  currentTimeRange,
                   () => analyticsNotifier.setTimeRange(AnalyticsTimeRange.last7Days),
                 ),
                 _buildTab(
                   context,
                   '30D',
                   AnalyticsTimeRange.last30Days,
-                  analytics.timeRange,
+                  currentTimeRange,
                   () => analyticsNotifier.setTimeRange(AnalyticsTimeRange.last30Days),
                 ),
                 _buildTab(
                   context,
                   '90D',
                   AnalyticsTimeRange.last90Days,
-                  analytics.timeRange,
+                  currentTimeRange,
                   () => analyticsNotifier.setTimeRange(AnalyticsTimeRange.last90Days),
                 ),
                 _buildTab(
                   context,
                   '1Y',
                   AnalyticsTimeRange.lastYear,
-                  analytics.timeRange,
+                  currentTimeRange,
                   () => analyticsNotifier.setTimeRange(AnalyticsTimeRange.lastYear),
                 ),
                 _buildTab(
                   context,
                   'All',
                   AnalyticsTimeRange.allTime,
-                  analytics.timeRange,
+                  currentTimeRange,
                   () => analyticsNotifier.setTimeRange(AnalyticsTimeRange.allTime),
                 ),
                 _buildTab(
                   context,
                   'Custom',
                   AnalyticsTimeRange.custom,
-                  analytics.timeRange,
+                  currentTimeRange,
                   () => _showCustomDateRangeDialog(context, analyticsNotifier, ref),
                 ),
               ],
@@ -81,11 +96,11 @@ class TimeRangeSelector extends ConsumerWidget {
           ),
           
           // Custom date range display
-          if (analytics.timeRange == AnalyticsTimeRange.custom) ...[
+          if (currentTimeRange == AnalyticsTimeRange.custom) ...[
             const SizedBox(height: AppSpacing.sm),
             DateRangePickerButton(
-              startDate: analytics.customStartDate,
-              endDate: analytics.customEndDate,
+              startDate: data.customStartDate ?? DateTime.now().subtract(const Duration(days: 29)),
+              endDate: data.customEndDate ?? DateTime.now(),
               onTap: () => _showCustomDateRangeDialog(context, analyticsNotifier, ref),
             ),
           ],
@@ -139,15 +154,76 @@ class TimeRangeSelector extends ConsumerWidget {
     );
   }
 
+  Widget _buildLoadingSelector() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: AppColors.grey100,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: List.generate(6, (index) {
+            return Expanded(
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 2),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: AppColors.grey300,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            );
+          }),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorSelector() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: AppColors.red50,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Text(
+          'Error loading time range selector',
+          style: TextStyle(
+            color: AppColors.redPrimary,
+            fontSize: 12,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ),
+    );
+  }
+
   void _showCustomDateRangeDialog(BuildContext context, AnalyticsNotifier notifier, WidgetRef ref) {
     final analytics = ref.read(analyticsProvider);
+    
+    final startDate = analytics.when(
+      data: (data) => data.customStartDate ?? DateTime.now().subtract(const Duration(days: 29)),
+      loading: () => DateTime.now().subtract(const Duration(days: 29)),
+      error: (_, __) => DateTime.now().subtract(const Duration(days: 29)),
+    );
+    
+    final endDate = analytics.when(
+      data: (data) => data.customEndDate ?? DateTime.now(),
+      loading: () => DateTime.now(),
+      error: (_, __) => DateTime.now(),
+    );
+    
     showDateRangePicker(
       context: context,
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
       initialDateRange: DateTimeRange(
-        start: analytics.customStartDate ?? DateTime.now().subtract(const Duration(days: 29)),
-        end: analytics.customEndDate ?? DateTime.now(),
+        start: startDate,
+        end: endDate,
       ),
     ).then((dateRange) {
       if (dateRange != null) {

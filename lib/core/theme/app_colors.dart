@@ -159,6 +159,13 @@ class AppColors {
   static const Color lightTextSecondary = Color(0xFF757575);
   static const Color darkTextPrimary = Color(0xFFFFFFFF);
   static const Color darkTextSecondary = Color(0xFFB0B0B0);
+  
+  // Common text colors (for backward compatibility)
+  static const Color textPrimary = lightTextPrimary;
+  static const Color textSecondary = lightTextSecondary;
+  
+  // Surface colors
+  static const Color surface = lightSurface;
 
   // Shadow Colors
   static const Color lightShadow = Color(0x1A000000);

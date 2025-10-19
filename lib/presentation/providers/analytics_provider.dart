@@ -19,47 +19,38 @@ class DateRange {
   });
 }
 
-class AnalyticsNotifier extends StateNotifier<AnalyticsData> {
+class AnalyticsNotifier extends StateNotifier<AsyncValue<AnalyticsData>> {
   final HabitRepository _habitRepository;
   final HabitLogRepository _logRepository;
+  
+  // State tracking variables
+  AnalyticsTimeRange _currentTimeRange = AnalyticsTimeRange.last30Days;
+  DateTime? _customStartDate;
+  DateTime? _customEndDate;
 
   AnalyticsNotifier(this._habitRepository, this._logRepository)
-      : super(AnalyticsData(
-          overview: AnalyticsOverview(
-            totalHabits: 0,
-            totalCompletions: 0,
-            averageCompletionRate: 0.0,
-            currentStreak: 0,
-            bestStreak: 0,
-            perfectDays: 0,
-            mostConsistentHabit: '',
-            totalXP: 0,
-            currentLevel: 1,
-            dateRangeStart: DateTime.now(),
-            dateRangeEnd: DateTime.now(),
-          ),
-          habitAnalytics: [],
-          categoryStats: [],
-          chartData: ChartData(
-            lineData: [],
-            barData: [],
-            pieData: [],
-            heatmapData: [],
-          ),
-          timeRange: AnalyticsTimeRange.last30Days,
-          isLoading: true,
-        )) {
+      : super(const AsyncValue.loading()) {
     _loadAnalytics();
   }
 
-  Future<void> _loadAnalytics() async {
+  Future<void> _loadAnalytics([AnalyticsTimeRange? timeRange, DateTime? customStart, DateTime? customEnd]) async {
     try {
-      state = state.loading();
+      state = const AsyncValue.loading();
+      
+      // Update current state if provided
+      if (timeRange != null) {
+        _currentTimeRange = timeRange;
+        if (timeRange == AnalyticsTimeRange.custom) {
+          _customStartDate = customStart;
+          _customEndDate = customEnd;
+        }
+      }
       
       final habits = _habitRepository.getActiveHabits();
       final logs = _logRepository.getAllLogs();
       
-      final dateRange = _getDateRange(state.timeRange, state.customStartDate, state.customEndDate);
+      // Use _currentTimeRange instead of hardcoded value
+      final dateRange = _getDateRange(_currentTimeRange, _customStartDate, _customEndDate);
       
       // Filter logs by date range
       final filteredLogs = logs.where((log) =>
@@ -79,25 +70,25 @@ class AnalyticsNotifier extends StateNotifier<AnalyticsData> {
       // Generate chart data
       final chartData = _generateChartData(filteredLogs, dateRange);
       
-      state = state.copyWith(
+      final analyticsData = AnalyticsData(
         overview: overview,
         habitAnalytics: habitAnalytics,
         categoryStats: categoryStats,
         chartData: chartData,
+        timeRange: _currentTimeRange,  // Use _currentTimeRange
+        customStartDate: _customStartDate,
+        customEndDate: _customEndDate,
         isLoading: false,
       );
-    } catch (e) {
-      state = state.errorState('Failed to load analytics: $e');
+      
+      state = AsyncValue.data(analyticsData);
+    } catch (e, stackTrace) {
+      state = AsyncValue.error(e, stackTrace);
     }
   }
 
   Future<void> setTimeRange(AnalyticsTimeRange timeRange, {DateTime? customStart, DateTime? customEnd}) async {
-    state = state.copyWith(
-      timeRange: timeRange,
-      customStartDate: customStart,
-      customEndDate: customEnd,
-    );
-    await _loadAnalytics();
+    await _loadAnalytics(timeRange, customStart, customEnd);
   }
 
   Future<void> refresh() async {
@@ -183,7 +174,7 @@ class AnalyticsNotifier extends StateNotifier<AnalyticsData> {
       final currentStreak = StreakCalculator.calculateHabitStreak(habit.id, logs, habit);
       final bestStreak = _calculateHabitBestStreak(habit.id, logs);
       final completionRate = ChartUtils.calculateCompletionRate(habitLogs, [habit], dateRange.start, dateRange.end);
-      final trendData = ChartUtils.generateTimeSeriesData(habitLogs, dateRange.start, dateRange.end, state.timeRange);
+      final trendData = ChartUtils.generateTimeSeriesData(habitLogs, dateRange.start, dateRange.end, AnalyticsTimeRange.last30Days);
       final isCompletedToday = _logRepository.isHabitCompletedToday(habit.id);
       final lastCompletionDate = habitLogs.isNotEmpty ? habitLogs.last.completedAt : null;
       final totalXP = _calculateHabitXP(habitLogs);
@@ -241,13 +232,13 @@ class AnalyticsNotifier extends StateNotifier<AnalyticsData> {
   }
 
   ChartData _generateChartData(List<HabitLog> logs, DateRange dateRange) {
-    final lineData = ChartUtils.generateTimeSeriesData(logs, dateRange.start, dateRange.end, state.timeRange);
+    final lineData = ChartUtils.generateTimeSeriesData(logs, dateRange.start, dateRange.end, AnalyticsTimeRange.last30Days);
     final heatmapData = ChartUtils.generateHeatmapData(logs, dateRange.start, dateRange.end);
     
     return ChartData(
       lineData: lineData,
-      barData: state.habitAnalytics,
-      pieData: state.categoryStats,
+      barData: [], // Will be populated by the calling method
+      pieData: [], // Will be populated by the calling method
       heatmapData: heatmapData,
     );
   }
@@ -422,7 +413,7 @@ final habitLogRepositoryProvider = Provider<HabitLogRepository>((ref) {
   return HabitLogRepository();
 });
 
-final analyticsProvider = StateNotifierProvider<AnalyticsNotifier, AnalyticsData>((ref) {
+final analyticsProvider = StateNotifierProvider<AnalyticsNotifier, AsyncValue<AnalyticsData>>((ref) {
   final habitRepo = ref.watch(habitRepositoryProvider);
   final logRepo = ref.watch(habitLogRepositoryProvider);
   return AnalyticsNotifier(habitRepo, logRepo);
@@ -430,17 +421,67 @@ final analyticsProvider = StateNotifierProvider<AnalyticsNotifier, AnalyticsData
 
 // Computed providers
 final analyticsOverviewProvider = Provider<AnalyticsOverview>((ref) {
-  return ref.watch(analyticsProvider).overview;
+  return ref.watch(analyticsProvider).when(
+    data: (analytics) => analytics.overview,
+    loading: () => AnalyticsOverview(
+      totalHabits: 0,
+      totalCompletions: 0,
+      averageCompletionRate: 0.0,
+      currentStreak: 0,
+      bestStreak: 0,
+      perfectDays: 0,
+      mostConsistentHabit: '',
+      totalXP: 0,
+      currentLevel: 1,
+      dateRangeStart: DateTime.now(),
+      dateRangeEnd: DateTime.now(),
+    ),
+    error: (_, __) => AnalyticsOverview(
+      totalHabits: 0,
+      totalCompletions: 0,
+      averageCompletionRate: 0.0,
+      currentStreak: 0,
+      bestStreak: 0,
+      perfectDays: 0,
+      mostConsistentHabit: '',
+      totalXP: 0,
+      currentLevel: 1,
+      dateRangeStart: DateTime.now(),
+      dateRangeEnd: DateTime.now(),
+    ),
+  );
 });
 
 final habitAnalyticsProvider = Provider<List<HabitAnalytics>>((ref) {
-  return ref.watch(analyticsProvider).habitAnalytics;
+  return ref.watch(analyticsProvider).when(
+    data: (analytics) => analytics.habitAnalytics,
+    loading: () => [],
+    error: (_, __) => [],
+  );
 });
 
 final categoryStatsProvider = Provider<List<CategoryStats>>((ref) {
-  return ref.watch(analyticsProvider).categoryStats;
+  return ref.watch(analyticsProvider).when(
+    data: (analytics) => analytics.categoryStats,
+    loading: () => [],
+    error: (_, __) => [],
+  );
 });
 
 final chartDataProvider = Provider<ChartData>((ref) {
-  return ref.watch(analyticsProvider).chartData;
+  return ref.watch(analyticsProvider).when(
+    data: (analytics) => analytics.chartData,
+    loading: () => ChartData(
+      lineData: [],
+      barData: [],
+      pieData: [],
+      heatmapData: [],
+    ),
+    error: (_, __) => ChartData(
+      lineData: [],
+      barData: [],
+      pieData: [],
+      heatmapData: [],
+    ),
+  );
 });

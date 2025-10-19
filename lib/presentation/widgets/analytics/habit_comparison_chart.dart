@@ -15,14 +15,14 @@ class HabitComparisonChart extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final analytics = ref.watch(analyticsProvider);
     
-    if (analytics.isLoading) {
-      return _buildLoadingChart();
-    }
-    
-    if (analytics.error != null) {
-      return _buildErrorChart(analytics.error!);
-    }
-    
+    return analytics.when(
+      data: (data) => _buildComparisonChart(context, data),
+      loading: () => _buildLoadingChart(),
+      error: (error, stack) => _buildErrorChart(error.toString()),
+    );
+  }
+
+  Widget _buildComparisonChart(BuildContext context, analytics) {
     final barData = analytics.chartData.barData;
     
     if (barData.isEmpty) {

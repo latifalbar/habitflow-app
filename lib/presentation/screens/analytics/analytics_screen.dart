@@ -163,20 +163,18 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
     );
   }
 
-  Widget _buildHabitAnalyticsList(analytics) {
-    if (analytics.isLoading) {
-      return SliverToBoxAdapter(
+  Widget _buildHabitAnalyticsList(AsyncValue<AnalyticsData> analytics) {
+    return analytics.when(
+      data: (data) => _buildHabitAnalyticsContent(data),
+      loading: () => SliverToBoxAdapter(
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
           child: Column(
             children: List.generate(3, (index) => _buildLoadingHabitCard()),
           ),
         ),
-      );
-    }
-    
-    if (analytics.error != null) {
-      return SliverToBoxAdapter(
+      ),
+      error: (error, stack) => SliverToBoxAdapter(
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
           child: Card(
@@ -198,7 +196,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   Text(
-                    analytics.error!,
+                    error.toString(),
                     style: AppTextStyles.bodyMedium.copyWith(
                       color: AppColors.grey600,
                     ),
@@ -209,10 +207,12 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
             ),
           ),
         ),
-      );
-    }
-    
-    final habitAnalytics = analytics.habitAnalytics;
+      ),
+    );
+  }
+
+  Widget _buildHabitAnalyticsContent(AnalyticsData data) {
+    final habitAnalytics = data.habitAnalytics;
     
     // Sort by completion rate (best performers first)
     final sortedHabits = List<HabitAnalytics>.from(habitAnalytics)

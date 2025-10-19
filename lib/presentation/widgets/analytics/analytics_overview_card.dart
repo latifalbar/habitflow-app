@@ -12,14 +12,14 @@ class AnalyticsOverviewCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final analytics = ref.watch(analyticsProvider);
     
-    if (analytics.isLoading) {
-      return _buildLoadingCard();
-    }
-    
-    if (analytics.error != null) {
-      return _buildErrorCard(analytics.error!);
-    }
-    
+    return analytics.when(
+      data: (data) => _buildOverviewCard(context, data),
+      loading: () => _buildLoadingCard(),
+      error: (error, stack) => _buildErrorCard(error.toString()),
+    );
+  }
+
+  Widget _buildOverviewCard(BuildContext context, analytics) {
     final overview = analytics.overview;
     
     return Container(
