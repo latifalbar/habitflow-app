@@ -1,0 +1,372 @@
+import '../../domain/entities/achievement.dart';
+import '../../data/repositories/achievement_repository.dart';
+
+class AchievementSeeder {
+  static final AchievementRepository _repository = AchievementRepository();
+
+  /// Seed all achievements
+  static Future<void> seedAchievements() async {
+    final achievements = _getAllAchievements();
+    
+    for (final achievement in achievements) {
+      await _repository.saveAchievement(achievement);
+    }
+    
+    print('Seeded ${achievements.length} achievements');
+  }
+
+  /// Get all achievement definitions
+  static List<Achievement> _getAllAchievements() {
+    return [
+      // Getting Started Category
+      Achievement(
+        id: 'first_step',
+        name: 'First Step',
+        description: 'Complete your first habit',
+        icon: '🚀',
+        category: AchievementCategory.gettingStarted,
+        rarity: AchievementRarity.common,
+        xpReward: 50,
+        coinReward: 25,
+        requirements: {'completions': 1},
+        isHidden: false,
+        progress: 0.0,
+        metadata: {'unlockMessage': 'Welcome to your journey!'},
+      ),
+      Achievement(
+        id: 'getting_started',
+        name: 'Getting Started',
+        description: 'Create your first habit',
+        icon: '🎯',
+        category: AchievementCategory.gettingStarted,
+        rarity: AchievementRarity.common,
+        xpReward: 25,
+        coinReward: 15,
+        requirements: {'habits': 1},
+        isHidden: false,
+        progress: 0.0,
+        metadata: {'unlockMessage': 'You\'re on your way!'},
+      ),
+      Achievement(
+        id: 'week_warrior',
+        name: 'Week Warrior',
+        description: 'Complete 7 habits in a week',
+        icon: '⚔️',
+        category: AchievementCategory.gettingStarted,
+        rarity: AchievementRarity.uncommon,
+        xpReward: 100,
+        coinReward: 50,
+        requirements: {'weekly_completions': 7},
+        isHidden: false,
+        progress: 0.0,
+        metadata: {'unlockMessage': 'You\'re building momentum!'},
+      ),
+
+      // Streak Category
+      Achievement(
+        id: 'streak_7_days',
+        name: 'Week Streak',
+        description: 'Maintain a 7-day streak',
+        icon: '🔥',
+        category: AchievementCategory.streaks,
+        rarity: AchievementRarity.uncommon,
+        xpReward: 150,
+        coinReward: 75,
+        requirements: {'streak': 7},
+        isHidden: false,
+        progress: 0.0,
+        metadata: {'unlockMessage': 'You\'re on fire!'},
+      ),
+      Achievement(
+        id: 'streak_30_days',
+        name: 'Monthly Master',
+        description: 'Maintain a 30-day streak',
+        icon: '🏆',
+        category: AchievementCategory.streaks,
+        rarity: AchievementRarity.rare,
+        xpReward: 500,
+        coinReward: 200,
+        requirements: {'streak': 30},
+        isHidden: false,
+        progress: 0.0,
+        metadata: {'unlockMessage': 'Incredible dedication!'},
+      ),
+      Achievement(
+        id: 'streak_100_days',
+        name: 'Century Streak',
+        description: 'Maintain a 100-day streak',
+        icon: '💯',
+        category: AchievementCategory.streaks,
+        rarity: AchievementRarity.epic,
+        xpReward: 1000,
+        coinReward: 500,
+        requirements: {'streak': 100},
+        isHidden: false,
+        progress: 0.0,
+        metadata: {'unlockMessage': 'Legendary commitment!'},
+      ),
+      Achievement(
+        id: 'streak_365_days',
+        name: 'Year of Excellence',
+        description: 'Maintain a 365-day streak',
+        icon: '👑',
+        category: AchievementCategory.streaks,
+        rarity: AchievementRarity.legendary,
+        xpReward: 2000,
+        coinReward: 1000,
+        requirements: {'streak': 365},
+        isHidden: false,
+        progress: 0.0,
+        metadata: {'unlockMessage': 'You are unstoppable!'},
+      ),
+
+      // Completions Category
+      Achievement(
+        id: 'completions_10',
+        name: 'Getting the Hang of It',
+        description: 'Complete 10 habits',
+        icon: '🎪',
+        category: AchievementCategory.completions,
+        rarity: AchievementRarity.common,
+        xpReward: 100,
+        coinReward: 50,
+        requirements: {'total_completions': 10},
+        isHidden: false,
+        progress: 0.0,
+        metadata: {'unlockMessage': 'You\'re getting the hang of it!'},
+      ),
+      Achievement(
+        id: 'completions_50',
+        name: 'Half Century',
+        description: 'Complete 50 habits',
+        icon: '🎯',
+        category: AchievementCategory.completions,
+        rarity: AchievementRarity.uncommon,
+        xpReward: 250,
+        coinReward: 100,
+        requirements: {'total_completions': 50},
+        isHidden: false,
+        progress: 0.0,
+        metadata: {'unlockMessage': 'Half century achieved!'},
+      ),
+      Achievement(
+        id: 'completions_100',
+        name: 'Century Club',
+        description: 'Complete 100 habits',
+        icon: '💯',
+        category: AchievementCategory.completions,
+        rarity: AchievementRarity.rare,
+        xpReward: 500,
+        coinReward: 200,
+        requirements: {'total_completions': 100},
+        isHidden: false,
+        progress: 0.0,
+        metadata: {'unlockMessage': 'Welcome to the century club!'},
+      ),
+      Achievement(
+        id: 'completions_500',
+        name: 'Habit Master',
+        description: 'Complete 500 habits',
+        icon: '🎖️',
+        category: AchievementCategory.completions,
+        rarity: AchievementRarity.epic,
+        xpReward: 1000,
+        coinReward: 500,
+        requirements: {'total_completions': 500},
+        isHidden: false,
+        progress: 0.0,
+        metadata: {'unlockMessage': 'You are a habit master!'},
+      ),
+      Achievement(
+        id: 'completions_1000',
+        name: 'Legendary Achiever',
+        description: 'Complete 1000 habits',
+        icon: '🏅',
+        category: AchievementCategory.completions,
+        rarity: AchievementRarity.legendary,
+        xpReward: 2000,
+        coinReward: 1000,
+        requirements: {'total_completions': 1000},
+        isHidden: false,
+        progress: 0.0,
+        metadata: {'unlockMessage': 'You are legendary!'},
+      ),
+
+      // Time Based Category
+      Achievement(
+        id: 'early_bird',
+        name: 'Early Bird',
+        description: 'Complete a habit before 7 AM',
+        icon: '🐦',
+        category: AchievementCategory.timeBased,
+        rarity: AchievementRarity.uncommon,
+        xpReward: 100,
+        coinReward: 50,
+        requirements: {'early_completion': 1},
+        isHidden: false,
+        progress: 0.0,
+        metadata: {'unlockMessage': 'The early bird gets the worm!'},
+      ),
+      Achievement(
+        id: 'night_owl',
+        name: 'Night Owl',
+        description: 'Complete a habit after 10 PM',
+        icon: '🦉',
+        category: AchievementCategory.timeBased,
+        rarity: AchievementRarity.uncommon,
+        xpReward: 100,
+        coinReward: 50,
+        requirements: {'late_completion': 1},
+        isHidden: false,
+        progress: 0.0,
+        metadata: {'unlockMessage': 'Who needs sleep anyway?'},
+      ),
+      Achievement(
+        id: 'weekend_warrior',
+        name: 'Weekend Warrior',
+        description: 'Complete a habit on the weekend',
+        icon: '🏃',
+        category: AchievementCategory.timeBased,
+        rarity: AchievementRarity.common,
+        xpReward: 75,
+        coinReward: 25,
+        requirements: {'weekend_completion': 1},
+        isHidden: false,
+        progress: 0.0,
+        metadata: {'unlockMessage': 'Even weekends can\'t stop you!'},
+      ),
+
+      // Special Category
+      Achievement(
+        id: 'perfect_week',
+        name: 'Perfect Week',
+        description: 'Complete all habits every day for a week',
+        icon: '⭐',
+        category: AchievementCategory.special,
+        rarity: AchievementRarity.rare,
+        xpReward: 300,
+        coinReward: 150,
+        requirements: {'perfect_week': 1},
+        isHidden: false,
+        progress: 0.0,
+        metadata: {'unlockMessage': 'Perfect week achieved!'},
+      ),
+      Achievement(
+        id: 'perfect_month',
+        name: 'Perfect Month',
+        description: 'Complete all habits every day for a month',
+        icon: '🌟',
+        category: AchievementCategory.special,
+        rarity: AchievementRarity.epic,
+        xpReward: 1000,
+        coinReward: 500,
+        requirements: {'perfect_month': 1},
+        isHidden: false,
+        progress: 0.0,
+        metadata: {'unlockMessage': 'Perfect month - incredible!'},
+      ),
+      Achievement(
+        id: 'comeback_kid',
+        name: 'Comeback Kid',
+        description: 'Restart a broken streak',
+        icon: '🔄',
+        category: AchievementCategory.special,
+        rarity: AchievementRarity.uncommon,
+        xpReward: 150,
+        coinReward: 75,
+        requirements: {'comeback': 1},
+        isHidden: false,
+        progress: 0.0,
+        metadata: {'unlockMessage': 'You bounced back stronger!'},
+      ),
+      Achievement(
+        id: 'level_10',
+        name: 'Rising Star',
+        description: 'Reach level 10',
+        icon: '⭐',
+        category: AchievementCategory.special,
+        rarity: AchievementRarity.rare,
+        xpReward: 200,
+        coinReward: 100,
+        requirements: {'level': 10},
+        isHidden: false,
+        progress: 0.0,
+        metadata: {'unlockMessage': 'You\'re a rising star!'},
+      ),
+      Achievement(
+        id: 'level_25',
+        name: 'Veteran',
+        description: 'Reach level 25',
+        icon: '🎖️',
+        category: AchievementCategory.special,
+        rarity: AchievementRarity.epic,
+        xpReward: 500,
+        coinReward: 250,
+        requirements: {'level': 25},
+        isHidden: false,
+        progress: 0.0,
+        metadata: {'unlockMessage': 'You\'re a veteran now!'},
+      ),
+      Achievement(
+        id: 'level_50',
+        name: 'Master',
+        description: 'Reach level 50',
+        icon: '👑',
+        category: AchievementCategory.special,
+        rarity: AchievementRarity.legendary,
+        xpReward: 1000,
+        coinReward: 500,
+        requirements: {'level': 50},
+        isHidden: false,
+        progress: 0.0,
+        metadata: {'unlockMessage': 'You are a master!'},
+      ),
+
+      // Hidden Achievements
+      Achievement(
+        id: 'secret_achiever',
+        name: 'Secret Achiever',
+        description: 'Complete 5 habits in one day',
+        icon: '🎭',
+        category: AchievementCategory.special,
+        rarity: AchievementRarity.rare,
+        xpReward: 200,
+        coinReward: 100,
+        requirements: {'daily_completions': 5},
+        isHidden: true,
+        progress: 0.0,
+        metadata: {'unlockMessage': 'You discovered a secret!'},
+      ),
+      Achievement(
+        id: 'midnight_warrior',
+        name: 'Midnight Warrior',
+        description: 'Complete a habit at exactly midnight',
+        icon: '🌙',
+        category: AchievementCategory.special,
+        rarity: AchievementRarity.epic,
+        xpReward: 300,
+        coinReward: 150,
+        requirements: {'midnight_completion': 1},
+        isHidden: true,
+        progress: 0.0,
+        metadata: {'unlockMessage': 'The midnight warrior awakens!'},
+      ),
+    ];
+  }
+
+  /// Clear all achievements (for testing)
+  static Future<void> clearAchievements() async {
+    await _repository.clearAllAchievements();
+    print('Cleared all achievements');
+  }
+
+  /// Get achievement by ID
+  static Future<Achievement?> getAchievement(String id) async {
+    return await _repository.getAchievementById(id);
+  }
+
+  /// Get achievements by category
+  static Future<List<Achievement>> getAchievementsByCategory(AchievementCategory category) async {
+    return await _repository.getAchievementsByCategory(category);
+  }
+}

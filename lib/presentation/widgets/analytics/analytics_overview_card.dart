@@ -14,8 +14,8 @@ class AnalyticsOverviewCard extends ConsumerWidget {
     
     return analytics.when(
       data: (data) => _buildOverviewCard(context, data),
-      loading: () => _buildLoadingCard(),
-      error: (error, stack) => _buildErrorCard(error.toString()),
+      loading: () => _buildLoadingCard(context),
+      error: (error, stack) => _buildErrorCard(context, error.toString()),
     );
   }
 
@@ -31,6 +31,7 @@ class AnalyticsOverviewCard extends ConsumerWidget {
             children: [
               Expanded(
                 child: _buildStatCard(
+                  context,
                   'Total Habits',
                   '${overview.totalHabits}',
                   Icons.list_alt,
@@ -40,6 +41,7 @@ class AnalyticsOverviewCard extends ConsumerWidget {
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: _buildStatCard(
+                  context,
                   'Completions',
                   '${overview.totalCompletions}',
                   Icons.check_circle,
@@ -55,6 +57,7 @@ class AnalyticsOverviewCard extends ConsumerWidget {
             children: [
               Expanded(
                 child: _buildStatCard(
+                  context,
                   'Completion Rate',
                   '${(overview.averageCompletionRate * 100).toStringAsFixed(1)}%',
                   Icons.trending_up,
@@ -64,6 +67,7 @@ class AnalyticsOverviewCard extends ConsumerWidget {
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: _buildStatCard(
+                  context,
                   'Current Streak',
                   '${overview.currentStreak}',
                   Icons.local_fire_department,
@@ -79,6 +83,7 @@ class AnalyticsOverviewCard extends ConsumerWidget {
             children: [
               Expanded(
                 child: _buildStatCard(
+                  context,
                   'Best Streak',
                   '${overview.bestStreak}',
                   Icons.emoji_events,
@@ -88,6 +93,7 @@ class AnalyticsOverviewCard extends ConsumerWidget {
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: _buildStatCard(
+                  context,
                   'Perfect Days',
                   '${overview.perfectDays}',
                   Icons.star,
@@ -103,6 +109,7 @@ class AnalyticsOverviewCard extends ConsumerWidget {
             children: [
               Expanded(
                 child: _buildStatCard(
+                  context,
                   'Level',
                   '${overview.currentLevel}',
                   Icons.workspace_premium,
@@ -112,6 +119,7 @@ class AnalyticsOverviewCard extends ConsumerWidget {
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: _buildStatCard(
+                  context,
                   'Total XP',
                   '${overview.totalXP}',
                   Icons.bolt,
@@ -131,7 +139,7 @@ class AnalyticsOverviewCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+  Widget _buildStatCard(BuildContext context, String title, String value, IconData icon, Color color) {
     return Card(
       elevation: 2,
       child: Container(
@@ -166,7 +174,7 @@ class AnalyticsOverviewCard extends ConsumerWidget {
             Text(
               title,
               style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.grey600,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontWeight: FontWeight.w500,
               ),
               textAlign: TextAlign.center,
@@ -221,24 +229,24 @@ class AnalyticsOverviewCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildLoadingCard() {
+  Widget _buildLoadingCard(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
       child: Column(
         children: [
           Row(
             children: [
-              Expanded(child: _buildLoadingStatCard()),
+              Expanded(child: _buildLoadingStatCard(context)),
               const SizedBox(width: AppSpacing.sm),
-              Expanded(child: _buildLoadingStatCard()),
+              Expanded(child: _buildLoadingStatCard(context)),
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
           Row(
             children: [
-              Expanded(child: _buildLoadingStatCard()),
+              Expanded(child: _buildLoadingStatCard(context)),
               const SizedBox(width: AppSpacing.sm),
-              Expanded(child: _buildLoadingStatCard()),
+              Expanded(child: _buildLoadingStatCard(context)),
             ],
           ),
         ],
@@ -246,7 +254,7 @@ class AnalyticsOverviewCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildLoadingStatCard() {
+  Widget _buildLoadingStatCard(BuildContext context) {
     return Card(
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.md),
@@ -256,7 +264,7 @@ class AnalyticsOverviewCard extends ConsumerWidget {
               width: 24,
               height: 24,
               decoration: BoxDecoration(
-                color: AppColors.grey300,
+                color: Theme.of(context).colorScheme.surfaceVariant,
                 borderRadius: BorderRadius.circular(4),
               ),
             ),
@@ -265,7 +273,7 @@ class AnalyticsOverviewCard extends ConsumerWidget {
               width: 40,
               height: 20,
               decoration: BoxDecoration(
-                color: AppColors.grey300,
+                color: Theme.of(context).colorScheme.surfaceVariant,
                 borderRadius: BorderRadius.circular(4),
               ),
             ),
@@ -274,7 +282,7 @@ class AnalyticsOverviewCard extends ConsumerWidget {
               width: 60,
               height: 12,
               decoration: BoxDecoration(
-                color: AppColors.grey300,
+                color: Theme.of(context).colorScheme.surfaceVariant,
                 borderRadius: BorderRadius.circular(4),
               ),
             ),
@@ -284,7 +292,7 @@ class AnalyticsOverviewCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildErrorCard(String error) {
+  Widget _buildErrorCard(BuildContext context, String error) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
       child: Card(
@@ -308,7 +316,7 @@ class AnalyticsOverviewCard extends ConsumerWidget {
               Text(
                 error,
                 style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.grey600,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
                 textAlign: TextAlign.center,
               ),

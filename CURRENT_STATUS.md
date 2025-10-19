@@ -1,12 +1,12 @@
 # HabitFlow - Current Development Status
 
-**Last Updated**: October 19, 2025
+**Last Updated**: December 22, 2024
 
 ## Quick Summary
 
-- **Phase**: Phase 4 - Gamification Features (Week 3-4)
-- **Progress**: ~55% Complete
-- **Status**: XP & Virtual Garden implemented, ready for Achievements
+- **Phase**: Phase 4 - Backend & Cloud Sync (Completed)
+- **Progress**: ~85% Complete
+- **Status**: Firebase integrated, Onboarding flow added, Auth screens created, Cloud Backup card added to Profile
 - **Build Status**: ✅ Build successful, app running on device
 
 ## Completed Features ✅
@@ -84,8 +84,68 @@
   - Haptic feedback on interactions
   - Quick stats in habit detail screen
 
-### Phase 4: Gamification Features ✅
-- ✅ XP & Leveling System:
+### Phase 3: Analytics & Insights ✅ (100% Complete)
+- ✅ Basic statistics dashboard
+- ✅ Calendar heatmap
+- ✅ Charts and visualizations (fl_chart)
+- ✅ Pattern recognition (streak analysis)
+- ✅ AI Insights (rule-based + statistical) - NEW
+  - Performance insights (completion rates, best habits, perfect days)
+  - Behavioral patterns (weekday vs weekend, time of day analysis)
+  - Predictive analytics (streak risk, habit abandonment prediction)
+  - Motivational nudges (level up approaching, streak milestones)
+  - Smart recommendations (habit stacking, optimal timing)
+  - 15+ different insight types implemented
+  - Beautiful UI with animations and expandable cards
+  - Priority-based filtering and categorization
+  - Non-intrusive banner integration in Analytics screen
+
+### Phase 4: Backend & Cloud Sync ✅ (100% Complete)
+- ✅ Firebase Setup (100% DONE):
+  - Firebase project configured (habitflow-6a102)
+  - google-services.json added for Android
+  - Firebase initialization in main.dart
+  - Firestore, Auth, Analytics, Crashlytics enabled
+  - Android Gradle configuration updated
+  - Firestore security rules created
+
+- ✅ Authentication System (100% DONE):
+  - AuthService with email/password and Google Sign In
+  - Auth screens: login_screen, signup_screen, forgot_password_screen
+  - Auth widgets: auth_text_field, social_sign_in_button
+  - AuthProvider for state management
+  - Premium feature gating with PremiumChecker
+
+- ✅ Cloud Backup & Sync (100% DONE):
+  - FirestoreService for cloud storage with CRUD operations
+  - SyncService with automatic and manual sync
+  - BackupService for full backup/restore operations
+  - ConflictResolver with user-prompted resolution
+  - CloudBackupCard widget (now integrated in Profile screen)
+  - SyncStatusIndicator widget
+  - ConflictResolutionDialog widget
+
+- ✅ Onboarding Flow (100% DONE):
+  - OnboardingScreen with 4 pages (Welcome, Features, Benefits, Optional Login)
+  - OnboardingPage reusable widget
+  - FirstLaunchChecker utility
+  - Optional login prompt at end of onboarding
+  - App initializer with first-launch detection
+
+- ✅ Utilities & Helpers (100% DONE):
+  - PremiumChecker for feature gating
+  - NetworkChecker for connectivity monitoring
+  - Local-first architecture with optional cloud sync
+  - UserRepository with cloud sync support
+
+- ✅ AI Insights Enhancement (100% DONE):
+  - Backup reminder insights added to AI insights generator
+  - 6 new backup-related insight types (streak milestones, habit count, level milestones, etc.)
+  - InsightCategory.backup added to insight system
+  - Integration with milestone achievements for premium conversion
+
+### Phase 4: Gamification Features ✅ (70% Complete)
+- ✅ XP & Leveling System (100% DONE):
   - `lib/domain/entities/user_progress.dart` - UserProgress entity
   - `lib/domain/entities/xp_transaction.dart` - XPTransaction entity
   - `lib/data/models/user_progress_model.dart` - Hive model (typeId: 7)
@@ -95,7 +155,7 @@
   - `lib/presentation/widgets/xp_gain_animation.dart` - XP gain animation
   - `lib/presentation/widgets/level_up_dialog.dart` - Level up celebration
   
-- ✅ Virtual Garden System:
+- ✅ Virtual Garden System (100% DONE):
   - `lib/domain/entities/plant.dart` - Plant entity with types & stages
   - `lib/domain/entities/garden.dart` - Garden entity
   - `lib/data/models/plant_model.dart` - Hive model (typeId: 6)
@@ -104,6 +164,29 @@
   - `lib/presentation/screens/garden/garden_screen.dart` - Garden UI
   - `lib/presentation/widgets/garden_grid.dart` - 4x4 plant grid
   - `lib/presentation/widgets/plant_info_sheet.dart` - Plant details
+
+- ✅ Streak System (90% DONE - functional):
+  - `lib/core/utils/streak_calculator.dart` - Complete streak calculation (242 lines)
+  - `lib/data/repositories/habit_log_repository.dart` - Streak methods
+  - Visual indicators (fire emoji) in UI
+  - Overall streak, habit-specific streak, best streak calculations
+
+- 🟡 Achievement System (40% - entity & model ada, belum provider/UI):
+  - ✅ `lib/domain/entities/achievement.dart` - Complete entity with categories & rarity
+  - ✅ `lib/data/models/achievement_model.dart` - Hive model (typeId: 5)
+  - ✅ Constants untuk achievement rewards di `app_constants.dart`
+  - ❌ Achievement Provider - Belum ada state management
+  - ❌ Achievement Repository - Belum ada CRUD operations
+  - ❌ Achievement UI Screens - Belum ada gallery
+  - ❌ Achievement Unlock Logic - Belum ada trigger system
+
+- 🟡 Coins Economy (30% - constants ada, belum logic/shop):
+  - ✅ Constants untuk coins di `app_constants.dart` (earning & spending)
+  - ✅ `User.coins` field sudah ada di entity
+  - ❌ Coins Provider/Logic - Belum ada sistem add/subtract
+  - ❌ Shop/Store UI - Belum ada tempat spending
+  - ❌ Coins Transaction History - Belum ada tracking
+  - ❌ Coins Earning Triggers - Belum ada trigger saat dapat coins
 
 - ✅ Development Tools:
   - `lib/core/utils/database_seeder.dart` - Seeder for testing
@@ -114,9 +197,9 @@
 ## In Progress 🚧
 
 ### Current Work
-1. **Implementing Achievements System** - Design and build achievement categories
-2. **Implementing Coins Economy** - Create coins earning and shop system
-3. **Testing gamification features** - Verify XP, leveling, and garden functionality
+1. **Testing Backend & Sync Features** - Verify Firebase integration and cloud sync
+2. **Implementing Achievements System** - Design and build achievement categories
+3. **Implementing Coins Economy** - Create coins earning and shop system
 
 ### Known Issues
 - ⚠️ Some overflow issues in calendar heatmap (fixed with SingleChildScrollView)
@@ -124,48 +207,48 @@
 
 ## Next Immediate Steps 📋
 
-### Priority 1: Continue Gamification (This Week)
-1. **Implement Achievements System**
+### Priority 1: Test & Polish Backend Features (This Week)
+1. **Test Firebase Integration**
+   - Verify Firebase Authentication works
+   - Test Firestore cloud storage
+   - Validate Analytics and Crashlytics
+   - Test cloud sync functionality
+
+2. **Test Onboarding & Auth Flow**
+   - Verify onboarding displays on first launch
+   - Test login/signup screens
+   - Validate premium feature gating
+   - Test Cloud Backup Card in Profile
+
+### Priority 2: Continue Gamification (Next Week)
+3. **Implement Achievements System**
    - Create achievement entities and models
    - Design achievement categories (streaks, milestones, special events)
    - Build achievement gallery UI
    - Add achievement notifications
 
-2. **Implement Coins Economy**
+4. **Implement Coins Economy**
    - Create coins earning system
    - Build shop for garden items and themes
    - Add daily/weekly challenges
    - Implement leaderboards and social features
 
-3. **Enhance Virtual Garden**
+### Priority 3: Polish & Optimization (Week 5)
+5. **Enhance Virtual Garden**
    - Add garden customization options
    - Implement garden sharing features
    - Add more plant types and growth stages
    - Create garden themes and decorations
 
-### Priority 2: Analytics & Insights (Next Week)
-4. **Build statistics dashboard**
-   - Completion rate calculations
-   - Weekly/monthly charts using fl_chart
-   - Best performing habits
-   - Time of day analysis
-
-5. **Implement progress tracking**
-   - Today's progress card (already in UI)
-   - Weekly progress view
-   - Monthly overview
-   - Goal progress indicators
-
-### Priority 3: Cloud Integration (Week 5)
-6. **Firebase Integration**
-   - Set up Firebase Authentication
-   - Implement Firestore for cloud storage
-   - Add Firebase Analytics and Crashlytics
-   - Create cloud sync functionality
+6. **Build Premium Features Screen**
+   - Create premium paywall screen
+   - Highlight cloud backup benefits
+   - Add subscription management
+   - Implement premium upgrade flow
 
 ## File Structure Status
 
-### Completed Files (70+ files)
+### Completed Files (100+ files)
 ```
 lib/
 ├── main.dart ✅
@@ -174,29 +257,25 @@ lib/
 │   ├── constants/ ✅ (3 files)
 │   ├── theme/ ✅ (5 files, added color scales)
 │   ├── router/ ⚠️ (empty, needs implementation)
-│   └── utils/ ✅ (3 files: xp_calculator, plant_growth_calculator, database_seeder)
+│   └── utils/ ✅ (6 files: xp_calculator, plant_growth_calculator, database_seeder, premium_checker, network_checker, first_launch_checker)
 ├── data/
 │   ├── models/ ✅ (6 files: habit, habit_log, user, achievement, user_progress, plant)
-│   ├── repositories/ ✅ (2 files)
-│   └── services/ ⚠️ (empty, needs Firebase services)
+│   ├── repositories/ ✅ (3 files: habit, habit_log, user)
+│   └── services/ ✅ (8 files: auth, firestore, sync, backup, conflict_resolver, analytics, crashlytics, local_storage)
 ├── domain/
 │   ├── entities/ ✅ (8 files: habit, habit_log, user, achievement, user_progress, xp_transaction, plant, garden)
 │   └── usecases/ ⚠️ (empty, optional for now)
 └── presentation/
-    ├── providers/ ✅ (6 files: habits, habit_logs, habit_sort, habit_completion, user_progress, garden)
-    ├── screens/ ✅ (5 files, added garden_screen)
-    └── widgets/ ✅ (14 files, added XP & garden widgets)
+    ├── providers/ ✅ (8 files: habits, habit_logs, habit_sort, habit_completion, user_progress, garden, auth, sync)
+    ├── screens/ ✅ (8 files: home, garden, onboarding, auth screens)
+    └── widgets/ ✅ (20+ files: XP, garden, auth, cloud backup widgets)
 ```
 
 ### Missing/Needed Files
 - `lib/core/router/app_router.dart` - For go_router implementation
 - `lib/core/utils/date_utils.dart` - Date formatting helpers
-- `lib/core/utils/streak_calculator.dart` - Streak logic
-- `lib/data/services/firebase_service.dart` - Firebase integration
-- `lib/data/services/hive_service.dart` - Hive initialization
-- `lib/domain/entities/achievement.dart` - Achievement entity
-- `lib/data/models/achievement_model.dart` - Achievement Hive model
 - `lib/presentation/providers/achievement_provider.dart` - Achievement state
+- `lib/presentation/screens/premium/premium_screen.dart` - Premium features screen
 
 ## Dependencies Status
 
@@ -222,9 +301,10 @@ lib/
 
 ### Recently Added ✅
 - confetti: 0.7.0 (for level up celebrations)
+- google_sign_in: 6.2.1 (for Google authentication)
+- connectivity_plus: 6.0.5 (for network connectivity)
 
 ### Not Yet Used (Ready for Later)
-- Firebase services (auth, firestore, analytics, crashlytics)
 - go_router (currently using Navigator)
 - RevenueCat (purchases_flutter)
 - Animations (flutter_animate, lottie)
@@ -244,6 +324,9 @@ lib/
 - [x] Search functionality works
 - [x] Dark mode toggle works
 - [x] Profile screen displays
+- [x] Onboarding flow displays on first launch
+- [x] Firebase initialized successfully
+- [x] Cloud Backup Card appears in Profile screen
 
 ### Gamification Testing
 - [x] XP gained on habit completion
@@ -255,6 +338,13 @@ lib/
 - [ ] Plant growth updates on habit completion
 - [ ] Garden stats calculate correctly
 - [ ] Plant info sheet displays details
+
+### Backend & Sync Testing
+- [ ] Login/signup functionality (not tested - requires Firebase Auth setup)
+- [ ] Cloud sync functionality (not tested - premium feature)
+- [ ] Backup reminder insights appear
+- [ ] Conflict resolution dialog works
+- [ ] Network connectivity detection works
 
 ### Unit Tests Needed (Later)
 - [ ] Streak calculation logic

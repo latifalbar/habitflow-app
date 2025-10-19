@@ -21,8 +21,8 @@ class SettingsScreen extends ConsumerWidget {
           'Settings',
           style: AppTextStyles.h4,
         ),
-        backgroundColor: AppColors.surface,
-        foregroundColor: AppColors.textPrimary,
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
         elevation: 0,
       ),
       body: CustomScrollView(
@@ -232,7 +232,7 @@ class SettingsScreen extends ConsumerWidget {
               return ListTile(
                 leading: Icon(
                   isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-                  color: isSelected ? AppColors.oceanPrimary : AppColors.textSecondary,
+                  color: isSelected ? AppColors.oceanPrimary : Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
                 title: Text(themeNotifier.getThemeDisplayName(theme)),
                 subtitle: Text(_getThemeDescription(theme)),

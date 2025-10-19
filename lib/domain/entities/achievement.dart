@@ -8,6 +8,27 @@ enum AchievementCategory {
   premium,
 }
 
+extension AchievementCategoryExtension on AchievementCategory {
+  String get categoryDisplayName {
+    switch (this) {
+      case AchievementCategory.gettingStarted:
+        return 'Getting Started';
+      case AchievementCategory.streaks:
+        return 'Streaks';
+      case AchievementCategory.completions:
+        return 'Completions';
+      case AchievementCategory.timeBased:
+        return 'Time Based';
+      case AchievementCategory.special:
+        return 'Special';
+      case AchievementCategory.social:
+        return 'Social';
+      case AchievementCategory.premium:
+        return 'Premium';
+    }
+  }
+}
+
 enum AchievementRarity {
   common,
   uncommon,

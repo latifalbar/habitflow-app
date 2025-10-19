@@ -58,7 +58,7 @@ class ProgressCard extends StatelessWidget {
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: _getTrendColor(trend!).withOpacity(0.1),
+                        color: _getTrendColor(trend!, context).withOpacity(0.1),
                         borderRadius: BorderRadius.circular(AppSpacing.radiusXs),
                       ),
                       child: Row(
@@ -67,13 +67,13 @@ class ProgressCard extends StatelessWidget {
                           Icon(
                             _getTrendIcon(trend!),
                             size: 12,
-                            color: _getTrendColor(trend!),
+                            color: _getTrendColor(trend!, context),
                           ),
                           const SizedBox(width: 2),
                           Text(
                             trend!,
                             style: AppTextStyles.labelSmall.copyWith(
-                              color: _getTrendColor(trend!),
+                              color: _getTrendColor(trend!, context),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -106,10 +106,10 @@ class ProgressCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               Text(
-                subtitle,
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.grey500,
-                ),
+              subtitle,
+              style: AppTextStyles.bodySmall.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
               ),
             ],
           ),
@@ -118,13 +118,13 @@ class ProgressCard extends StatelessWidget {
     );
   }
 
-  Color _getTrendColor(String trend) {
+  Color _getTrendColor(String trend, BuildContext context) {
     if (trend.startsWith('+')) {
       return AppColors.greenPrimary;
     } else if (trend.startsWith('-')) {
       return AppColors.redPrimary;
     } else {
-      return AppColors.grey500;
+      return Theme.of(context).colorScheme.onSurfaceVariant;
     }
   }
 
@@ -267,7 +267,7 @@ class CompletionRateCard extends StatelessWidget {
                     CircularProgressIndicator(
                       value: completionRate,
                       strokeWidth: 6,
-                      backgroundColor: AppColors.grey200,
+                      backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
                       valueColor: AlwaysStoppedAnimation<Color>(
                         _getCompletionColor(completionRate),
                       ),
@@ -299,7 +299,7 @@ class CompletionRateCard extends StatelessWidget {
               Text(
                 '$completedDays of $totalDays days',
                 style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.grey500,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
             ],

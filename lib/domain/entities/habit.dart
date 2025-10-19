@@ -204,4 +204,28 @@ class Habit {
         return 'everyXDays';
     }
   }
+  
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'icon': icon,
+      'color': color.value,
+      'frequency': frequency.toString(),
+      'goalType': goalType.toString(),
+      'goalValue': goalValue,
+      'goalUnit': goalUnit,
+      'customDays': customDays,
+      'timesPerWeek': timesPerWeek,
+      'everyXDays': everyXDays,
+      'createdAt': createdAt.toIso8601String(),
+      'reminderTime': reminderTime?.toIso8601String(),
+      'category': category,
+      'isArchived': isArchived,
+      'sortOrder': sortOrder,
+      'metadata': metadata,
+      'updatedAt': DateTime.now().toIso8601String(),
+    };
+  }
 }

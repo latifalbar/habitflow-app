@@ -7,6 +7,7 @@ class StorageKeys {
   static const String userProgressBox = 'user_progress';
   static const String plantsBox = 'plants';
   static const String settingsBox = 'settings';
+  static const String coinsBox = 'coins_transactions';
 
   // User Preferences
   static const String themeMode = 'theme_mode';
@@ -28,6 +29,7 @@ class StorageKeys {
   static const String userAvatar = 'user_avatar';
   static const String isPremium = 'is_premium';
   static const String premiumExpiresAt = 'premium_expires_at';
+  static const String currentUserKey = 'current_user';
 
   // Sync & Backup
   static const String lastSyncTime = 'last_sync_time';

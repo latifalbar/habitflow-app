@@ -18,8 +18,8 @@ class AboutScreen extends ConsumerWidget {
           'About',
           style: AppTextStyles.h4,
         ),
-        backgroundColor: AppColors.surface,
-        foregroundColor: AppColors.textPrimary,
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
         elevation: 0,
       ),
       body: CustomScrollView(
@@ -67,7 +67,7 @@ class AboutScreen extends ConsumerWidget {
                     subtitle: 'Thanks to our contributors',
                   ),
                   const SizedBox(height: AppSpacing.sm),
-                  _buildCreditsCard(),
+                  _buildCreditsCard(context),
                   const SizedBox(height: AppSpacing.xl),
                 ],
               ),
@@ -118,14 +118,14 @@ class AboutScreen extends ConsumerWidget {
             Text(
               'Version ${AppConstants.appVersion}',
               style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
               AppConstants.appTagline,
               style: AppTextStyles.bodyLarge.copyWith(
-                color: AppColors.textSecondary,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontStyle: FontStyle.italic,
               ),
               textAlign: TextAlign.center,
@@ -136,7 +136,7 @@ class AboutScreen extends ConsumerWidget {
             Text(
               'Transform your daily routines into a fun, engaging journey with beautiful UI, smart insights, and powerful analytics. Build better habits with gamification, track your progress, and watch your virtual garden grow.',
               style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 height: 1.5,
               ),
               textAlign: TextAlign.center,
@@ -280,7 +280,7 @@ class AboutScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildCreditsCard() {
+  Widget _buildCreditsCard(BuildContext context) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
@@ -297,7 +297,7 @@ class AboutScreen extends ConsumerWidget {
             Text(
               'Built with ❤️ by the HabitFlow team',
               style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
             const SizedBox(height: AppSpacing.md),
@@ -308,13 +308,13 @@ class AboutScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
-            const Text(
+            Text(
               '• Flutter team for the amazing framework\n'
               '• Material Design for the design system\n'
               '• Firebase for backend services\n'
               '• Open source community for inspiration',
               style: TextStyle(
-                color: AppColors.textSecondary,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 height: 1.5,
               ),
             ),
@@ -322,7 +322,7 @@ class AboutScreen extends ConsumerWidget {
             Text(
               'Made with Flutter ${AppConstants.appVersion}',
               style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.textSecondary,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontStyle: FontStyle.italic,
               ),
             ),

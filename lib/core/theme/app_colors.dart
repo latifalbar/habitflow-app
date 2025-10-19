@@ -284,4 +284,5 @@ class AppColors {
         return oceanSecondary;
     }
   }
+
 }

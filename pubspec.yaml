@@ -60,6 +60,12 @@ dependencies:
   
   # Animations
   lottie: ^3.1.2
+  
+  # Authentication
+  google_sign_in: ^6.2.1
+  
+  # Network
+  connectivity_plus: ^6.0.5
 
 dev_dependencies:
   flutter_test:

@@ -94,4 +94,19 @@ class HabitLog {
       return 'Just now';
     }
   }
+  
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'habitId': habitId,
+      'completedAt': completedAt.toIso8601String(),
+      'value': value,
+      'note': note,
+      'isCompleted': isCompleted,
+      'createdAt': createdAt.toIso8601String(),
+      'syncedAt': syncedAt?.toIso8601String(),
+      'metadata': metadata,
+      'updatedAt': DateTime.now().toIso8601String(),
+    };
+  }
 }

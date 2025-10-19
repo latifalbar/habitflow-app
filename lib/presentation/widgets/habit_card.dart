@@ -66,7 +66,7 @@ class HabitCard extends ConsumerWidget {
                           style: AppTextStyles.bodyLarge.copyWith(
                             fontWeight: FontWeight.w600,
                             decoration: completionStatus == HabitCompletionStatus.completed ? TextDecoration.lineThrough : null,
-                            color: completionStatus == HabitCompletionStatus.completed ? AppColors.grey500 : AppColors.grey800,
+                            color: completionStatus == HabitCompletionStatus.completed ? Theme.of(context).colorScheme.onSurfaceVariant : Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                         if (habit.description.isNotEmpty) ...[
@@ -74,7 +74,7 @@ class HabitCard extends ConsumerWidget {
                           Text(
                             habit.description,
                             style: AppTextStyles.bodySmall.copyWith(
-                              color: AppColors.grey600,
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -126,13 +126,13 @@ class HabitCard extends ConsumerWidget {
                         vertical: AppSpacing.xs,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.grey100,
+                        color: Theme.of(context).colorScheme.surfaceVariant,
                         borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
                       ),
                       child: Text(
                         habit.goalDescription,
                         style: AppTextStyles.labelSmall.copyWith(
-                          color: AppColors.grey600,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,

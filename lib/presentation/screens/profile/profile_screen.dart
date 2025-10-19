@@ -12,6 +12,7 @@ import '../../widgets/stat_card.dart';
 import '../../widgets/profile_section_header.dart';
 import '../../widgets/profile_option_tile.dart';
 import '../../widgets/xp_progress_bar.dart';
+import '../../widgets/cloud_backup_card.dart';
 import '../settings/settings_screen.dart';
 import '../about/about_screen.dart';
 
@@ -45,6 +46,10 @@ class ProfileScreen extends ConsumerWidget {
               children: [
                 // User Progress Card
                 _buildUserProgressCard(context, userProgressAsync),
+                const SizedBox(height: AppSpacing.lg),
+
+                // Cloud Backup Card
+                _buildCloudBackupCard(context, ref),
                 const SizedBox(height: AppSpacing.lg),
 
                 // Quick Stats Section
@@ -457,5 +462,9 @@ class ProfileScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Widget _buildCloudBackupCard(BuildContext context, WidgetRef ref) {
+    return const CloudBackupCard();
   }
 }

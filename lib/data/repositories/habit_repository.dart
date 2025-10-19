@@ -1,5 +1,6 @@
 import 'package:uuid/uuid.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/habit.dart';
 import '../models/habit_model.dart';
 import '../../core/constants/storage_keys.dart';
@@ -96,3 +97,8 @@ class HabitRepository {
     }).toList();
   }
 }
+
+/// Riverpod provider for HabitRepository
+final habitRepositoryProvider = Provider<HabitRepository>((ref) {
+  return HabitRepository();
+});

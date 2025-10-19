@@ -12,6 +12,9 @@ import '../../widgets/analytics/habit_comparison_chart.dart';
 import '../../widgets/analytics/category_distribution_chart.dart';
 import '../../widgets/analytics/heatmap_calendar.dart';
 import '../../widgets/analytics/habit_analytics_card.dart';
+import '../../widgets/insights_banner.dart';
+import '../../screens/insights/insights_screen.dart';
+import '../../providers/insights_provider.dart';
 
 class AnalyticsScreen extends ConsumerStatefulWidget {
   const AnalyticsScreen({super.key});
@@ -53,6 +56,55 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
               },
               tooltip: 'Refresh analytics',
             ),
+            Consumer(
+              builder: (context, ref, child) {
+                final insights = ref.watch(insightsProvider);
+                final unreadCount = insights.whenData(
+                  (insights) => insights.where((i) => !i.isDismissed && !(i.metadata['isRead'] ?? false)).length
+                ).valueOrNull ?? 0;
+                
+                return Stack(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.insights),
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const InsightsScreen(),
+                          ),
+                        );
+                      },
+                      tooltip: 'View Insights',
+                    ),
+                    if (unreadCount > 0)
+                      Positioned(
+                        right: 8,
+                        top: 8,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF44336),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          constraints: const BoxConstraints(
+                            minWidth: 16,
+                            minHeight: 16,
+                          ),
+                          child: Text(
+                            '$unreadCount',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
           ],
         ),
         
@@ -62,6 +114,14 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
         ),
         const SliverToBoxAdapter(
           child: SizedBox(height: AppSpacing.md),
+        ),
+        
+        // Insights Banner
+        const SliverToBoxAdapter(
+          child: InsightsBanner(
+            onViewAll: null, // Will be handled by the insights button
+            onDismiss: null, // Will be handled in insights screen
+          ),
         ),
         
         // Overview Cards

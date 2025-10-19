@@ -150,4 +150,27 @@ class User {
   void setPreference(String key, dynamic value) {
     preferences[key] = value;
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'email': email,
+      'avatarUrl': avatarUrl,
+      'level': level,
+      'xp': xp,
+      'coins': coins,
+      'currentStreak': currentStreak,
+      'bestStreak': bestStreak,
+      'totalCompletions': totalCompletions,
+      'createdAt': createdAt.toIso8601String(),
+      'lastActiveAt': lastActiveAt?.toIso8601String(),
+      'selectedTheme': selectedTheme,
+      'isPremium': isPremium,
+      'premiumExpiresAt': premiumExpiresAt?.toIso8601String(),
+      'unlockedAchievements': unlockedAchievements,
+      'preferences': preferences,
+      'metadata': metadata,
+    };
+  }
 }
