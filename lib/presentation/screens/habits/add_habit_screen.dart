@@ -5,6 +5,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../domain/entities/habit.dart';
 import '../../providers/habits_provider.dart';
+import '../../providers/garden_provider.dart';
 import '../../widgets/icon_picker.dart';
 import '../../widgets/color_picker.dart';
 import '../../widgets/frequency_selector.dart';
@@ -517,6 +518,20 @@ class _AddHabitScreenState extends ConsumerState<AddHabitScreen> {
         await ref.read(habitsProvider.notifier).updateHabit(habit);
       } else {
         await ref.read(habitsProvider.notifier).addHabit(habit);
+        
+        // Auto-plant seed in garden for new habits
+        try {
+          final garden = ref.read(gardenProvider).value;
+          if (garden != null) {
+            final emptyPosition = garden.getFirstEmptyPosition();
+            if (emptyPosition != null) {
+              await ref.read(gardenProvider.notifier).plantSeed(habit, emptyPosition);
+            }
+          }
+        } catch (e) {
+          // Garden planting failed, but don't block habit creation
+          print('Failed to plant seed in garden: $e');
+        }
       }
 
       if (mounted) {
@@ -526,7 +541,7 @@ class _AddHabitScreenState extends ConsumerState<AddHabitScreen> {
             content: Text(
               widget.habit != null 
                   ? 'Habit "${habit.name}" updated successfully!'
-                  : 'Habit "${habit.name}" created successfully!'
+                  : 'Habit "${habit.name}" created successfully! 🌱'
             ),
             backgroundColor: AppColors.greenPrimary,
           ),

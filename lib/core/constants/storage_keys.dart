@@ -4,6 +4,8 @@ class StorageKeys {
   static const String habitLogsBox = 'habit_logs';
   static const String userBox = 'user';
   static const String achievementsBox = 'achievements';
+  static const String userProgressBox = 'user_progress';
+  static const String plantsBox = 'plants';
   static const String settingsBox = 'settings';
 
   // User Preferences

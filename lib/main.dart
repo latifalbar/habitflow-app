@@ -7,6 +7,8 @@ import 'data/models/habit_model.dart';
 import 'data/models/habit_log_model.dart';
 import 'data/models/user_model.dart';
 import 'data/models/achievement_model.dart';
+import 'data/models/user_progress_model.dart';
+import 'data/models/plant_model.dart';
 import 'core/constants/storage_keys.dart';
 
 void main() async {
@@ -20,12 +22,16 @@ void main() async {
   Hive.registerAdapter(HabitLogModelAdapter());
   Hive.registerAdapter(UserModelAdapter());
   Hive.registerAdapter(AchievementModelAdapter());
+  Hive.registerAdapter(UserProgressModelAdapter());
+  Hive.registerAdapter(PlantModelAdapter());
   
   // Open Hive boxes
   await Hive.openBox<HabitModel>(StorageKeys.habitsBox);
   await Hive.openBox<HabitLogModel>(StorageKeys.habitLogsBox);
   await Hive.openBox<UserModel>(StorageKeys.userBox);
   await Hive.openBox<AchievementModel>(StorageKeys.achievementsBox);
+  await Hive.openBox<UserProgressModel>(StorageKeys.userProgressBox);
+  await Hive.openBox<PlantModel>(StorageKeys.plantsBox);
   await Hive.openBox(StorageKeys.settingsBox);
 
   // Set preferred orientations

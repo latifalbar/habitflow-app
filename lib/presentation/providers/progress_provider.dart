@@ -149,8 +149,8 @@ class ProgressNotifier extends StateNotifier<DailyProgress> {
         totalHabitsToday: totalHabitsToday,
         currentStreak: currentStreak,
         totalXP: totalXP,
-        currentLevel: levelInfo['currentLevel']!,
-        xpToNextLevel: levelInfo['xpToNextLevel']!,
+        currentLevel: levelInfo.level,
+        xpToNextLevel: levelInfo.xpNeededForNextLevel,
         completionRate: completionRate,
         isPerfectDay: isPerfectDay,
         isLoading: false,
@@ -210,10 +210,9 @@ class ProgressNotifier extends StateNotifier<DailyProgress> {
 
       // Calculate XP for this completion
       final completionXP = XPCalculator.calculateCompletionXP(
-        isFirstTime: isFirstTime,
-        currentStreak: habitStreak,
-        isPerfectDay: isPerfectDay,
-        isCategoryComplete: isCategoryComplete,
+        habit,
+        habitStreak,
+        isFirstTime,
       );
 
       dayXP += completionXP;
@@ -246,7 +245,7 @@ class ProgressNotifier extends StateNotifier<DailyProgress> {
   }
 
   // Get level info
-  Map<String, dynamic> getLevelInfo() {
+  LevelInfo getLevelInfo() {
     return XPCalculator.getLevelInfo(state.totalXP);
   }
 
@@ -258,7 +257,7 @@ class ProgressNotifier extends StateNotifier<DailyProgress> {
   }
 
   // Check if user reached a milestone
-  Map<String, dynamic>? checkMilestone() {
+  Milestone? checkMilestone() {
     return XPCalculator.checkMilestone(state.totalXP);
   }
 }
@@ -283,7 +282,7 @@ final todaysProgressProvider = Provider<DailyProgress>((ref) {
   return ref.watch(progressProvider);
 });
 
-final levelInfoProvider = Provider<Map<String, dynamic>>((ref) {
+final levelInfoProvider = Provider<LevelInfo>((ref) {
   final progress = ref.watch(progressProvider);
   return XPCalculator.getLevelInfo(progress.totalXP);
 });
@@ -293,7 +292,7 @@ final streakStatsProvider = Provider<Map<String, dynamic>>((ref) {
   return progressNotifier.getStreakStats();
 });
 
-final milestoneProvider = Provider<Map<String, dynamic>?>((ref) {
+final milestoneProvider = Provider<Milestone?>((ref) {
   final progress = ref.watch(progressProvider);
   return XPCalculator.checkMilestone(progress.totalXP);
 });

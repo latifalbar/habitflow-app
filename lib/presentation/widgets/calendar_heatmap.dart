@@ -180,8 +180,11 @@ class CalendarHeatmap extends StatelessWidget {
       );
     }
     
-    return Row(
-      children: monthLabels,
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: monthLabels,
+      ),
     );
   }
 

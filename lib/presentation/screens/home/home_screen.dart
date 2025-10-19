@@ -11,10 +11,19 @@ import '../../providers/habit_logs_provider.dart' as logs;
 import '../../providers/progress_provider.dart';
 import '../../providers/habit_completion_provider.dart';
 import '../../providers/habit_sort_provider.dart';
+import '../../providers/user_progress_provider.dart';
+import '../../providers/garden_provider.dart';
 import '../../widgets/habit_card.dart';
+import '../../widgets/xp_progress_bar.dart';
+import '../../widgets/xp_gain_animation.dart';
+import '../../widgets/level_up_dialog.dart';
+import '../../../core/utils/xp_calculator.dart';
+import '../../../domain/entities/xp_transaction.dart';
 import '../habits/add_habit_screen.dart';
 import '../habits/habit_detail_screen.dart';
 import '../habits/habits_search_screen.dart';
+import '../garden/garden_screen.dart';
+import '../analytics/analytics_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -140,6 +149,10 @@ class _HabitsTabState extends ConsumerState<HabitsTab> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // XP Progress Bar
+                const XPProgressBar(),
+                const SizedBox(height: AppSpacing.md),
+                
                 // Greeting Card
                 _buildGreetingCard(context),
                 const SizedBox(height: AppSpacing.lg),
@@ -321,13 +334,37 @@ class _HabitsTabState extends ConsumerState<HabitsTab> {
                           ref.invalidate(habitCompletionCountProvider(habit.id));
                           
                           if (mounted) {
-                            // Get updated progress to show XP earned
-                            final updatedProgress = ref.read(progressProvider);
-                            final xpEarned = _calculateXPForCompletion(habit, updatedProgress);
+                            // Calculate XP earned
+                            final currentStreak = ref.read(habitCompletionCountProvider(habit.id));
+                            final isFirstCompletion = currentStreak == 1;
+                            final xpEarned = XPCalculator.calculateCompletionXP(habit, currentStreak, isFirstCompletion);
+                            
+                            // Add XP to user progress
+                            final levelUpResult = await ref.read(userProgressProvider.notifier).addXP(
+                              xpEarned,
+                              XPSource.habitCompletion,
+                              habit.id,
+                            );
+                            
+                            // Show XP gain animation
+                            showXPGainAnimation(context, xpEarned);
+                            
+                            // Show level up dialog if leveled up
+                            if (levelUpResult != null) {
+                              showLevelUpDialog(context, levelUpResult);
+                            }
+                            
+                            // Update plant growth in garden
+                            try {
+                              await ref.read(gardenProvider.notifier).updatePlantGrowth();
+                            } catch (e) {
+                              // Garden update failed, but don't block habit completion
+                              print('Failed to update plant growth: $e');
+                            }
                             
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Marked "${habit.name}" as completed! +$xpEarned XP'),
+                                content: Text('Marked "${habit.name}" as completed!'),
                                 backgroundColor: AppColors.greenPrimary,
                                 duration: const Duration(seconds: 2),
                               ),
@@ -547,35 +584,7 @@ class AnalyticsTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return CustomScrollView(
-      slivers: [
-        SliverAppBar(
-          floating: true,
-          title: Text('Analytics', style: AppTextStyles.h4),
-        ),
-        SliverFillRemaining(
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.analytics_outlined,
-                  size: 80,
-                  color: AppColors.grey400,
-                ),
-                const SizedBox(height: AppSpacing.md),
-                Text(
-                  'Analytics Coming Soon',
-                  style: AppTextStyles.h5.copyWith(
-                    color: AppColors.grey600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
+    return const AnalyticsScreen();
   }
 }
 
@@ -585,35 +594,7 @@ class GardenTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return CustomScrollView(
-      slivers: [
-        SliverAppBar(
-          floating: true,
-          title: Text('Garden', style: AppTextStyles.h4),
-        ),
-        SliverFillRemaining(
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.eco_outlined,
-                  size: 80,
-                  color: AppColors.grey400,
-                ),
-                const SizedBox(height: AppSpacing.md),
-                Text(
-                  'Garden Coming Soon',
-                  style: AppTextStyles.h5.copyWith(
-                    color: AppColors.grey600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
+    return const GardenScreen();
   }
 }
 
